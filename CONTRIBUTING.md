@@ -1,6 +1,6 @@
-# `jit` contribution guide
+# Jit contribution guide
 
-The main entry point to `jit` is via the Bash script `./jit` in the root directory.
+The main entry point to Jit is via the Bash script `./jit` in the root directory.
 
 New Jit commands are stored in the `cmd/` directory with a `.sh` extension. So, for example, when you call
 ```
