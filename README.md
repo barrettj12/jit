@@ -6,6 +6,11 @@
 - [Git](https://git-scm.com/)
 - [GitHub CLI](https://cli.github.com/) (`gh`)
 
+## Installation
+1. Install the above dependencies.
+2. Download the source code.
+3. Add the source tree root directory (containing the downloaded code) to your PATH.
+
 ## The `jit` workflow
 
 ### Directory structure
