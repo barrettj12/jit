@@ -1,12 +1,16 @@
 #!/bin/bash
 # Main entry point for jit
 
+ROOT=$(dirname "$0")
 CMD=$1
-ARGS=${@:2}
+ARGS=${*:2}
 
-if [[ -f "cmd/$CMD.sh" ]]
+# Attempt to call command file
+FILE="$ROOT/cmd/$CMD.sh"
+
+if [[ -f $FILE ]]
 then
-  cmd/$CMD.sh $ARGS
+  $FILE "$ARGS"
 else
-  git $CMD $ARGS
+  git "$CMD" "$ARGS"
 fi
