@@ -2,6 +2,7 @@
 # Ask GitHub what this branch is about
 # usage:   jit what <branch-name>
 
+# TODO: when given no arguments, show state of all branches
 BRANCH=$1
 
 if [[ -z "${GH_USER}" ]]

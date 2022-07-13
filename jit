@@ -3,14 +3,14 @@
 
 ROOT=$(dirname "$0")
 CMD=$1
-ARGS=${*:2}
+ARGS=( "${@:2}" )
 
 # Attempt to call command file
 FILE="$ROOT/cmd/$CMD.sh"
 
 if [[ -f $FILE ]]
 then
-  $FILE "$ARGS"
+  $FILE "${ARGS[@]}"
 else
-  git "$CMD" "$ARGS"
+  git "$CMD" "${ARGS[@]}"
 fi
