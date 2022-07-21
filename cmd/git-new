@@ -1,0 +1,55 @@
+#!/bin/bash
+# make a new branch & worktree
+# usage: git-new <new-branch> <base-branch>
+
+if [ $# -lt 2 ]
+then
+  echo 'Not enough arguments provided.'
+  echo '    git-new <new-branch> <base-branch>'
+  exit 1
+fi
+
+if [ "$WORKSPACE" = "" ]
+then
+  WORKSPACE=$PWD
+fi
+
+NEW_BRANCH=$1
+BASE_BRANCH=$2
+WORKTREE_DIR=$WORKSPACE/../$NEW_BRANCH
+BASE_DIR=$WORKSPACE/../$BASE_BRANCH
+
+# Pull latest version of $BASE_BRANCH
+git-pull $BASE_BRANCH
+
+# Create new branch and worktree
+# Check if $NEW_BRANCH already exists
+if git show-ref -q --heads $NEW_BRANCH
+then
+  git worktree add $WORKTREE_DIR $NEW_BRANCH
+else
+  git worktree add $WORKTREE_DIR $BASE_BRANCH -b $NEW_BRANCH
+fi
+
+# `push` is already set to the right place (fork/$NEW_BRANCH)
+
+# Push new branch to fork, and set `pull`
+git push -u fork $NEW_BRANCH
+
+# Copy Juju binaries if they exist
+mkdir $WORKTREE_DIR/_build
+cp -r $BASE_DIR/_build/linux_amd64 $WORKTREE_DIR/_build
+
+# open new worktree in GoLand
+goland $WORKTREE_DIR
+
+# Give new Juju access to controller
+#BASE_JUJU=$BASE_DIR/_build/linux_amd64/bin/juju
+#NEW_JUJU=$WORKTREE_DIR/_build/linux_amd64/bin/juju
+# Assuming $BASE_JUJU has a controller active
+#REGISTER_CMD=$($BASE_JUJU add-user $NEW_BRANCH | grep -oP 'register (.*)')
+#$BASE_JUJU grant $NEW_BRANCH superuser
+#JUJU_DATA=$WORKTREE_DIR/_build/jujudata
+#printf "1234\n1234\n$BASE_BRANCH\n" | $NEW_JUJU $REGISTER_CMD
+
+
