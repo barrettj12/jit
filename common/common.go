@@ -6,16 +6,14 @@ import (
 )
 
 func Execute(script string, args []string) error {
-	cmd := &exec.Cmd{
-		Path:   script,
-		Args:   args,
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-	}
+	cmd := exec.Command(script, args...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
 
-	err := cmd.Start()
-	if err != nil {
-		return err
-	}
-	return cmd.Wait()
+func Git(cmd string, args []string) error {
+	gitArgs := append([]string{cmd}, args...)
+	return Execute("git", gitArgs)
 }

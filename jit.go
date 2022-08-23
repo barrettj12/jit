@@ -1,32 +1,51 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
 
+	"github.com/barrettj12/jit/cmd"
 	"github.com/barrettj12/jit/common"
 )
 
 func main() {
-	cmd := os.Args[1]
+	// Get source directory
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("unable to determine source directory")
+	}
+	srcDir := filepath.Dir(file)
+
+	command := os.Args[1]
 	args := os.Args[2:]
 
-	switch cmd {
+	var err error
+	switch command {
+	// case "echo":
+	// 	err = common.Execute("echo", args)
 	case "clone":
-		common.Execute("git-clone", args)
+		err = common.Execute(filepath.Join(srcDir, "cmd/git-clone"), args)
+	case "log":
+		err = cmd.Log(args)
 	case "new":
-		common.Execute("git-new", args)
+		err = common.Execute(filepath.Join(srcDir, "cmd/git-new"), args)
 	case "pull":
-		common.Execute("git-pull", args)
+		err = common.Execute(filepath.Join(srcDir, "cmd/git-pull"), args)
 	case "rebase":
-		common.Execute("git-rebase", args)
+		err = common.Execute(filepath.Join(srcDir, "cmd/git-rebase"), args)
 	case "rm", "remove":
-		common.Execute("rm.sh", args)
+		err = common.Execute(filepath.Join(srcDir, "cmd/rm.sh"), args)
 	case "what":
-		common.Execute("what.sh", args)
+		err = common.Execute(filepath.Join(srcDir, "cmd/what.sh"), args)
 	case "where":
-		common.Execute("git-where", args)
+		err = common.Execute(filepath.Join(srcDir, "cmd/git-where"), args)
 	default:
-		gitArgs := append([]string{cmd}, args...)
-		common.Execute("git", gitArgs)
+		err = common.Git(command, args)
+	}
+
+	if err != nil {
+		fmt.Println(err)
 	}
 }

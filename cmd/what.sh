@@ -4,6 +4,7 @@
 
 # TODO: when given no arguments, show state of all branches
 BRANCH=$1
+echo "Branch: $BRANCH"
 
 if [[ -z "${GH_USER}" ]]
 then
