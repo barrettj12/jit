@@ -26,7 +26,7 @@ func main() {
 	// case "echo":
 	// 	err = common.Execute("echo", args)
 	case "clone":
-		err = common.Execute(filepath.Join(srcDir, "cmd/git-clone"), args)
+		err = cmd.Clone(args)
 	case "log":
 		err = cmd.Log(args)
 	case "new":
