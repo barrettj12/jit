@@ -30,7 +30,7 @@ func main() {
 	case "log":
 		err = cmd.Log(args)
 	case "new":
-		err = common.Execute(filepath.Join(srcDir, "cmd/git-new"), args)
+		err = cmd.New(args)
 	case "pull":
 		err = common.Execute(filepath.Join(srcDir, "cmd/git-pull"), args)
 	case "rebase":
