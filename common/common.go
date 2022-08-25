@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"regexp"
 )
 
 func Execute(script string, args []string) error {
@@ -50,14 +52,30 @@ func ReqArg(args []string, i int, prompt string, ptr *string) error {
 	return nil
 }
 
+var GitNotARepoErr = regexp.MustCompile("not a git repository")
+
 // Returns the root folder of the current repo
 func RepoBasePath() (string, error) {
-	b := bytes.Buffer{}
+	stdout := bytes.Buffer{}
+	stderr := bytes.Buffer{}
+
 	cmd := exec.Command("git", "rev-parse", "--absolute-git-dir")
-	cmd.Stdout = &b
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
 	err := cmd.Run()
 	if err != nil {
-		return "", err
+		// Read stderr for error info
+		errInfo := stderr.String()
+
+		if GitNotARepoErr.MatchString(errInfo) {
+			return "", fmt.Errorf("current dir is not inside a git repo")
+		} else {
+			return "", fmt.Errorf("%s\n%s", errInfo, err)
+		}
 	}
-	return b.String(), nil
+
+	// Success - return dir of stdout
+	path := filepath.Dir(stdout.String())
+	return path, nil
 }

@@ -5,6 +5,13 @@ import (
 	"path/filepath"
 )
 
+// For an existing branch "foo", need to run
+//
+//	git worktree add <repo>/foo
+//
+// For a new branch "bar" based on "foo", need to run
+//
+//	git worktree add <repo>/bar foo -b bar
 func New(args []string) error {
 	var newB, base string
 	err := common.ReqArg(args, 0, "Enter a name for the new branch:", &newB)
