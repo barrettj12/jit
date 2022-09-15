@@ -59,7 +59,7 @@ func RepoBasePath() (string, error) {
 	stdout := bytes.Buffer{}
 	stderr := bytes.Buffer{}
 
-	cmd := exec.Command("git", "rev-parse", "--absolute-git-dir")
+	cmd := exec.Command("git", "rev-parse", "--path-format=absolute", "--git-common-dir")
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
