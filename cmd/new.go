@@ -31,9 +31,5 @@ func New(args []string) error {
 	path := filepath.Join(gitDir, newB)
 
 	// Create worktree
-	err = common.Git("worktree", []string{"add", path, base, "-b", newB})
-	if err != nil {
-		return err
-	}
-	return nil
+	return common.Git("worktree", []string{"add", path, base, "-b", newB})
 }
