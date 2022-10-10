@@ -44,7 +44,7 @@ func Clone(args []string) error {
 
 	// Make a bare repo
 	// git clone --bare <repository> <directory>
-	err = common.Git("clone", []string{"--bare", repoURL, cloneDir})
+	err = common.Git("clone", []string{"--bare", repoURL, filepath.Join(cloneDir, ".git")})
 	if err != nil {
 		return fmt.Errorf("error cloning repo: %w", err)
 	}
