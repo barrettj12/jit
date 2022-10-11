@@ -32,13 +32,12 @@ func JitDir() (string, error) {
 	return path, nil
 }
 
-// ReqArg will first see if args[i] has been defined
-// If so, it will set *ptr to this value
-// If not, it will prompt the user to enter a value
-func ReqArg(args []string, i int, prompt string, ptr *string) error {
+// ReqArg will first see if args[i] has been defined.
+// If so, it will return this value.
+// If not, it will prompt the user to enter a value.
+func ReqArg(args []string, i int, prompt string) (string, error) {
 	if len(args) > i {
-		*ptr = args[i]
-		return nil
+		return args[i], nil
 	}
 
 	// Argument was not defined, so prompt the user for input
@@ -46,10 +45,9 @@ func ReqArg(args []string, i int, prompt string, ptr *string) error {
 	fmt.Printf("%v ", prompt)
 	sc.Scan()
 	if err := sc.Err(); err != nil {
-		return fmt.Errorf("error reading input: %w", err)
+		return "", fmt.Errorf("error reading input: %w", err)
 	}
-	*ptr = sc.Text()
-	return nil
+	return sc.Text(), nil
 }
 
 var GitNotARepoErr = regexp.MustCompile("not a git repository")

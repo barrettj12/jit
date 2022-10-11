@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/barrettj12/jit/common"
 	"net/url"
 	"path/filepath"
 	"strings"
+
+	"github.com/barrettj12/jit/common"
 )
 
 // Clone clones the provided repo, using the workflow described in
@@ -14,8 +15,7 @@ import (
 func Clone(args []string) error {
 	var user, repo string
 
-	var arg1 string
-	err := common.ReqArg(args, 0, "URL of Git repo to clone:", &arg1)
+	arg1, err := common.ReqArg(args, 0, "URL of Git repo to clone:")
 	if err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func Clone(args []string) error {
 
 	if repo == "" {
 		// arg1 was just "user"
-		err := common.ReqArg(args, 1, fmt.Sprint("Which of %s's repos do you want?", user), &repo)
+		repo, err = common.ReqArg(args, 1, fmt.Sprint("Which of %s's repos do you want?", user))
 		if err != nil {
 			return err
 		}
