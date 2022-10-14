@@ -10,7 +10,7 @@ import (
 	"regexp"
 )
 
-func Execute(script string, args []string) error {
+func Execute(script string, args ...string) error {
 	cmd := exec.Command(script, args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -18,9 +18,9 @@ func Execute(script string, args []string) error {
 	return cmd.Run()
 }
 
-func Git(cmd string, args []string) error {
+func Git(cmd string, args ...string) error {
 	gitArgs := append([]string{cmd}, args...)
-	return Execute("git", gitArgs)
+	return Execute("git", gitArgs...)
 }
 
 // Returns the value of env variable JIT_DIR
@@ -76,4 +76,14 @@ func RepoBasePath() (string, error) {
 	// Success - return dir of stdout
 	path := filepath.Dir(stdout.String())
 	return path, nil
+}
+
+// Returns the absolute file path to the given branch/worktree
+func WorktreePath(branch string) (string, error) {
+	// Get path to new worktree
+	gitDir, err := RepoBasePath()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(gitDir, branch), nil
 }

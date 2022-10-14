@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	"github.com/barrettj12/jit/common"
@@ -36,11 +35,11 @@ func New(args []string) error {
 	// Check if branch exists locally
 	if branchExistsLocally(branch) {
 		// Create new worktree using this branch
-		path, err := wktreePath(branch)
+		path, err := common.WorktreePath(branch)
 		if err != nil {
 			return err
 		}
-		return common.Git("worktree", []string{"add", path})
+		return common.Git("worktree", "add", path)
 	}
 
 	// Try to find branch in remotes
@@ -55,11 +54,11 @@ func New(args []string) error {
 		split := strings.Split(remoteRef, "/")
 		newBranch := split[len(split)-1]
 
-		path, err := wktreePath(newBranch)
+		path, err := common.WorktreePath(newBranch)
 		if err != nil {
 			return err
 		}
-		return common.Git("worktree", []string{"add", path, remoteRef})
+		return common.Git("worktree", "add", path, remoteRef)
 	}
 
 	// len(branches) = 0, i.e. branch was not found in remotes.
@@ -70,15 +69,15 @@ func New(args []string) error {
 	}
 
 	// Create worktree
-	path, err := wktreePath(branch)
+	path, err := common.WorktreePath(branch)
 	if err != nil {
 		return err
 	}
-	return common.Git("worktree", []string{"add", path, base, "-b", branch})
+	return common.Git("worktree", "add", path, base, "-b", branch)
 }
 
 func branchExistsLocally(branch string) bool {
-	err := common.Git("show-ref", []string{"--quiet", fmt.Sprint("refs/heads/%s", branch)})
+	err := common.Git("show-ref", "--quiet", fmt.Sprint("refs/heads/%s", branch))
 	return err == nil
 }
 
@@ -88,7 +87,7 @@ func branchExistsLocally(branch string) bool {
 func searchRemotesForBranch(branch string) ([]string, error) {
 	ret := []string{}
 	lookBranch := func(string) {
-		err := common.Git("show-ref", []string{"--quiet", fmt.Sprint("refs/remotes/%s", branch)})
+		err := common.Git("show-ref", "--quiet", fmt.Sprint("refs/remotes/%s", branch))
 		if err == nil {
 			ret = append(ret, branch)
 		}
@@ -107,15 +106,6 @@ func searchRemotesForBranch(branch string) ([]string, error) {
 	}
 
 	return ret, nil
-}
-
-func wktreePath(branch string) (string, error) {
-	// Get path to new worktree
-	gitDir, err := common.RepoBasePath()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(gitDir, branch), nil
 }
 
 func getRemotes() ([]string, error) {

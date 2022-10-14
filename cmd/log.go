@@ -13,5 +13,5 @@ func Log(args []string) error {
 	if !*expand {
 		gitArgs = append(gitArgs, "--oneline")
 	}
-	return common.Git("log", gitArgs)
+	return common.Git("log", gitArgs...)
 }

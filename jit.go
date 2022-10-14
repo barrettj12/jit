@@ -27,22 +27,24 @@ func main() {
 	// 	err = common.Execute("echo", args)
 	case "clone":
 		err = cmd.Clone(args)
+	case "edit":
+		err = cmd.Edit(args)
 	case "log":
 		err = cmd.Log(args)
 	case "new":
 		err = cmd.New(args)
 	case "pull":
-		err = common.Execute(filepath.Join(srcDir, "cmd/git-pull"), args)
+		err = common.Execute(filepath.Join(srcDir, "cmd/git-pull"), args...)
 	case "rebase":
-		err = common.Execute(filepath.Join(srcDir, "cmd/git-rebase"), args)
+		err = common.Execute(filepath.Join(srcDir, "cmd/git-rebase"), args...)
 	case "rm", "remove":
-		err = common.Execute(filepath.Join(srcDir, "cmd/rm.sh"), args)
+		err = common.Execute(filepath.Join(srcDir, "cmd/rm.sh"), args...)
 	case "what":
-		err = common.Execute(filepath.Join(srcDir, "cmd/what.sh"), args)
+		err = common.Execute(filepath.Join(srcDir, "cmd/what.sh"), args...)
 	case "where":
-		err = common.Execute(filepath.Join(srcDir, "cmd/git-where"), args)
+		err = common.Execute(filepath.Join(srcDir, "cmd/git-where"), args...)
 	default:
-		err = common.Git(command, args)
+		err = common.Git(command, args...)
 	}
 
 	if err != nil {
