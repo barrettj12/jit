@@ -38,7 +38,7 @@ func main() {
 	case "rebase":
 		err = common.Execute(filepath.Join(srcDir, "cmd/git-rebase"), args...)
 	case "rm", "remove":
-		err = common.Execute(filepath.Join(srcDir, "cmd/rm.sh"), args...)
+		err = cmd.Remove(args)
 	case "what":
 		err = common.Execute(filepath.Join(srcDir, "cmd/what.sh"), args...)
 	case "where":

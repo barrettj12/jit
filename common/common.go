@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 func Execute(script string, args ...string) error {
@@ -54,6 +55,7 @@ var GitNotARepoErr = regexp.MustCompile("not a git repository")
 
 // Returns the root folder of the current repo
 func RepoBasePath() (string, error) {
+	// TODO: factor out this exec.Command logic
 	stdout := bytes.Buffer{}
 	stderr := bytes.Buffer{}
 
@@ -86,4 +88,36 @@ func WorktreePath(branch string) (string, error) {
 		return "", err
 	}
 	return filepath.Join(gitDir, branch), nil
+}
+
+var ErrUpstreamNotFound = fmt.Errorf("upstream not found")
+
+// Returns push location (remote, branch) for the given branch
+func PushLoc(localBranch string) (remote, remoteBranch string, err error) {
+	stdout := bytes.Buffer{}
+	stderr := bytes.Buffer{}
+
+	cmd := exec.Command("git", "for-each-ref", "--format='%(push:short)'",
+		fmt.Sprint("refs/heads/%s", localBranch))
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	err = cmd.Run()
+	if err != nil {
+		// Read stderr for error info
+		errInfo := stderr.String()
+
+		if GitNotARepoErr.MatchString(errInfo) {
+			return "", "", fmt.Errorf("current dir is not inside a git repo")
+		} else {
+			return "", "", fmt.Errorf("%s\n%s", errInfo, err)
+		}
+	}
+
+	pushloc := stdout.String()
+	if pushloc == "" {
+		return "", "", ErrUpstreamNotFound
+	}
+	split := strings.Split(pushloc, "/")
+	return split[0], split[1], nil
 }
