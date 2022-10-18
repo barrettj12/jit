@@ -98,7 +98,7 @@ func PushLoc(localBranch string) (remote, remoteBranch string, err error) {
 	stderr := bytes.Buffer{}
 
 	cmd := exec.Command("git", "for-each-ref", "--format='%(push:short)'",
-		fmt.Sprint("refs/heads/%s", localBranch))
+		fmt.Sprintf("refs/heads/%s", localBranch))
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
@@ -114,7 +114,7 @@ func PushLoc(localBranch string) (remote, remoteBranch string, err error) {
 		}
 	}
 
-	pushloc := stdout.String()
+	pushloc := strings.Trim(stdout.String(), "'\n")
 	if pushloc == "" {
 		return "", "", ErrUpstreamNotFound
 	}

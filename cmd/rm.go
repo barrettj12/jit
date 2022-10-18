@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 
@@ -41,31 +42,50 @@ func Remove(args []string) error {
 	if err != nil {
 		return err
 	}
-	ok, err := confirm(fmt.Sprintf("Delete worktree at %s", wktreePath))
-	if err != nil {
+	_, err = os.Stat(wktreePath)
+	if errors.Is(err, os.ErrNotExist) {
+		fmt.Printf("no worktree found at %s\n", wktreePath)
+	} else if err != nil {
 		return err
-	}
-	if ok {
-		err = common.Git("worktree", "remove", wktreePath)
+	} else {
+		ok, err := confirm(fmt.Sprintf("Delete worktree at %s", wktreePath))
 		if err != nil {
 			return err
 		}
-		err = common.Execute("rm", "-r", wktreePath)
-		if err != nil {
-			return err
+		if ok {
+			err = common.Git("worktree", "remove", wktreePath)
+			if err != nil {
+				return err
+			}
+			err = os.RemoveAll(wktreePath)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	// Delete local branch
 	// git branch -d <branchname>
-	ok, err = confirm(fmt.Sprintf("Delete local branch %q", branch))
+	// TODO: git fetch so that we don't get the error message
+	//     error: The branch ____ is not fully merged.
+	ok, err := confirm(fmt.Sprintf("Delete local branch %q", branch))
 	if err != nil {
 		return err
 	}
 	if ok {
 		err = common.Git("branch", "-d", branch)
 		if err != nil {
-			return err
+			fmt.Printf("ERROR: %v", err)
+			force, err := confirm("Branch deletion failed, try again with force")
+			if err != nil {
+				return err
+			}
+			if force {
+				err = common.Git("branch", "-D", branch)
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
