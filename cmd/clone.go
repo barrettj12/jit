@@ -33,7 +33,7 @@ func Clone(args []string) error {
 	}
 
 	// Reconstruct repository URL
-	repoURL := fmt.Sprintf("https://github.com/%s/%s", user, repo)
+	repoURL := githubURL(user, repo)
 
 	// Use JIT_DIR to find clone path
 	jitDir, err := common.JitDir()
@@ -49,15 +49,22 @@ func Clone(args []string) error {
 		return fmt.Errorf("error cloning repo: %w", err)
 	}
 
-	// Add remote "fork"
+	// Fork repo and add as remote
+	err = common.Execute("gh", "repo", "fork",
+		fmt.Sprintf("%s/%s", user, repo), "--clone=false")
+	if err != nil {
+		return fmt.Errorf("error creating fork: %w", err)
+	}
+	err = common.Git("remote", "add", "fork", common.GitHubUser())
+	if err != nil {
+		return fmt.Errorf("error adding remote: %w", err)
+	}
 
 	// Success - print message to user
 	fmt.Printf(`
 Successfully cloned repo %s/%s into %v
-Copy remote branches using
-    jit get <remote-branch>
-or create new branches using
-    jit new <branch> <base>
+Ceate new branches using
+    jit new <branch> [<remote>/]<base>
 `[1:], user, repo, cloneDir)
 	return nil
 }
@@ -95,4 +102,8 @@ func parseGitRepoURL(raw string) (string, string, error) {
 	default:
 		return "", "", fmt.Errorf("invalid Git repo URL %s", raw)
 	}
+}
+
+func githubURL(user, repo string) string {
+	return fmt.Sprintf("https://github.com/%s/%s", user, repo)
 }

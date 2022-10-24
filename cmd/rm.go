@@ -75,7 +75,7 @@ func Remove(args []string) error {
 	if ok {
 		err = common.Git("branch", "-d", branch)
 		if err != nil {
-			fmt.Printf("ERROR: %v", err)
+			fmt.Printf("ERROR: %v\n", err)
 			force, err := confirm("Branch deletion failed, try again with force")
 			if err != nil {
 				return err

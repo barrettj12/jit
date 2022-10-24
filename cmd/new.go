@@ -22,6 +22,23 @@ func New(args []string) error {
 		return err
 	}
 
+	// TODO: if remote branch not found, then try fetch
+	//   $ jit new ip-address pengale/main
+	//   Preparing worktree (new branch 'ip-address')
+	//   fatal: not a valid object name: 'pengale/main'
+	//   ERROR: exit status 255
+
+	// TODO: fix this
+	//   $ jit new main
+	//   Which branch should this be based on? source/main
+	//   Preparing worktree (new branch 'main')
+	//   fatal: a branch named 'main' already exists
+	//   ERROR: exit status 255
+	//   $ jit new main main
+	//   Preparing worktree (new branch 'main')
+	//   fatal: a branch named 'main' already exists
+	//   ERROR: exit status 255
+
 	// cases:
 	//   branch exists locally, not checked out
 	//    -> create new worktree, check out this branch

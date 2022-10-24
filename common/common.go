@@ -121,3 +121,7 @@ func PushLoc(localBranch string) (remote, remoteBranch string, err error) {
 	split := strings.Split(pushloc, "/")
 	return split[0], split[1], nil
 }
+
+func GitHubUser() string {
+	return os.Getenv("GH_USER")
+}
