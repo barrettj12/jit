@@ -55,7 +55,16 @@ func Remove(args []string) error {
 		if ok {
 			err = common.Git("worktree", "remove", wktreePath)
 			if err != nil {
-				return err
+				force, err := confirm("Worktree deletion failed, try again with --force")
+				if err != nil {
+					return err
+				}
+				if force {
+					err = common.Git("worktree", "remove", wktreePath, "--force")
+					if err != nil {
+						return err
+					}
+				}
 			}
 			err = os.RemoveAll(wktreePath)
 			if err != nil {

@@ -39,6 +39,13 @@ func New(args []string) error {
 	//   fatal: a branch named 'main' already exists
 	//   ERROR: exit status 255
 
+	// TODO: should be able to find branch in remote (i.e. no prompt)
+	//   $ jit new fix-info-bundle-formatting
+	//   Which branch should this be based on? benhoyt/fix-info-bundle-formatting
+	//   Preparing worktree (new branch 'fix-info-bundle-formatting')
+	//   branch 'fix-info-bundle-formatting' set up to track 'benhoyt/fix-info-bundle-formatting'.
+	//   HEAD is now at 675e36bc44 Fix messed-up channels formatting for "juju info" of a bundle
+
 	// cases:
 	//   branch exists locally, not checked out
 	//    -> create new worktree, check out this branch
