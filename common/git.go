@@ -7,10 +7,11 @@ import (
 
 var GitNotARepoErr = regexp.MustCompile("not a git repository")
 
-func ExecGit(args ...string) (string, error) {
+func ExecGit(dir string, args ...string) (string, error) {
 	res := Exec(ExecArgs{
 		Cmd:  "git",
 		Args: args,
+		Dir:  dir,
 	})
 
 	// handle errors

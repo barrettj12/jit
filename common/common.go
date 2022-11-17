@@ -51,7 +51,7 @@ func ReqArg(args []string, i int, prompt string) (string, error) {
 
 // Returns the root folder of the current repo
 func RepoBasePath() (string, error) {
-	stdout, err := ExecGit("rev-parse", "--path-format=absolute", "--git-common-dir")
+	stdout, err := ExecGit("", "rev-parse", "--path-format=absolute", "--git-common-dir")
 	if err != nil {
 		return "", err
 	}
@@ -74,7 +74,7 @@ var ErrUpstreamNotFound = fmt.Errorf("upstream not found")
 
 // Returns push location (remote, branch) for the given branch
 func PushLoc(localBranch string) (remote, remoteBranch string, err error) {
-	stdout, err := ExecGit("for-each-ref", "--format='%(push:short)'",
+	stdout, err := ExecGit("", "for-each-ref", "--format='%(push:short)'",
 		fmt.Sprintf("refs/heads/%s", localBranch))
 	if err != nil {
 		return "", "", err

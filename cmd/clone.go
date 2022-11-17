@@ -50,12 +50,14 @@ func Clone(args []string) error {
 	}
 
 	// Fork repo and add as remote
+	// TODO: prompt whether to make fork. maybe accept a --fork=[true|false] flag to skip the prompt
 	err = common.Execute("gh", "repo", "fork",
 		fmt.Sprintf("%s/%s", user, repo), "--clone=false")
 	if err != nil {
 		return fmt.Errorf("error creating fork: %w", err)
 	}
-	err = common.Git("remote", "add", "fork", common.GitHubUser())
+	_, err = common.ExecGit(cloneDir, "remote", "add", "fork",
+		fmt.Sprintf("https://github.com/%s/%s", common.GitHubUser(), repo))
 	if err != nil {
 		return fmt.Errorf("error adding remote: %w", err)
 	}
