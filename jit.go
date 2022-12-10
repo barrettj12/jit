@@ -31,8 +31,8 @@ func main() {
 		err = cmd.Clone(args)
 	case "edit":
 		err = cmd.Edit(args)
-	case "log":
-		err = cmd.Log(args)
+	//case "log":
+	//	err = cmd.Log(args)
 	case "new":
 		err = cmd.New(args)
 	case "pull":
