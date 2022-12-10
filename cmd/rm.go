@@ -10,6 +10,7 @@ import (
 )
 
 func Remove(args []string) error {
+	// TODO: add --force option
 	branch, err := common.ReqArg(args, 0, "Which branch would you like to remove?")
 	if err != nil {
 		return err
@@ -17,6 +18,7 @@ func Remove(args []string) error {
 
 	// Delete remote tracking branch
 	// git push -d <remote_name> <branchname>
+	// TODO: not working when upstream is in origin/source repo
 	remote, remoteBranch, err := common.PushLoc(branch)
 	if err == common.ErrUpstreamNotFound {
 		// no-op
