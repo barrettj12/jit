@@ -97,7 +97,13 @@ func New(args []string) error {
 	if err != nil {
 		return err
 	}
-	return common.Git("worktree", "add", path, base, "-b", branch)
+
+	err = common.Git("worktree", "add", path, base, "-b", branch)
+	if err != nil {
+		return err
+	}
+
+	return Edit([]string{branch})
 }
 
 func branchExistsLocally(branch string) bool {
