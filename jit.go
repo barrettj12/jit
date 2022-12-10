@@ -36,7 +36,7 @@ func main() {
 	case "new":
 		err = cmd.New(args)
 	case "pull":
-		err = common.Execute(filepath.Join(srcDir, "cmd/git-pull"), args...)
+		err = cmd.Pull(args)
 	case "rebase":
 		err = common.Execute(filepath.Join(srcDir, "cmd/git-rebase"), args...)
 	case "rm", "remove":
