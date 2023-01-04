@@ -103,6 +103,7 @@ func Remove(args []string) error {
 	return nil
 }
 
+// TODO: move this to common
 func confirm(prompt string) (bool, error) {
 	sc := bufio.NewScanner(os.Stdin)
 	fmt.Printf("%s? [y/n]: ", prompt)
