@@ -25,6 +25,8 @@ func main() {
 	switch command {
 	// case "echo":
 	// 	err = common.Execute("echo", args)
+	case "add-remote":
+		err = cmd.AddRemote(args)
 	case "apply":
 		err = cmd.Apply(args)
 	case "clone":

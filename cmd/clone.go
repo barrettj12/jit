@@ -70,10 +70,9 @@ Create new branches using
 
 		// Add as remote
 		ghUser := common.GitHubUser()
-		_, err = common.ExecGit(cloneDir, "remote", "add", ghUser,
-			fmt.Sprintf("https://github.com/%s/%s", ghUser, repo))
+		err := addRemote(ghUser, "")
 		if err != nil {
-			return fmt.Errorf("error adding remote: %w", err)
+			return err
 		}
 	}
 
