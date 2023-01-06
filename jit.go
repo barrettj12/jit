@@ -35,6 +35,8 @@ func main() {
 	//	err = cmd.Log(args)
 	case "new":
 		err = cmd.New(args)
+	case "publish":
+		err = cmd.Publish(args)
 	case "pull":
 		err = cmd.Pull(args)
 	case "rebase":

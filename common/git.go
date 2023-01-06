@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-var GitNotARepoErr = regexp.MustCompile("not a git repository")
+var reErrGitNotARepo = regexp.MustCompile("not a git repository")
 
 func ExecGit(dir string, args ...string) (string, error) {
 	res := Exec(ExecArgs{
@@ -19,8 +19,8 @@ func ExecGit(dir string, args ...string) (string, error) {
 		// Read stderr for error info
 		errInfo := res.Stderr
 
-		if GitNotARepoErr.MatchString(errInfo) {
-			return "", fmt.Errorf("current dir is not inside a git repo")
+		if reErrGitNotARepo.MatchString(errInfo) {
+			return "", ErrGitNotARepo
 		} else {
 			return "", fmt.Errorf("%s\n%s", errInfo, res.RunError)
 		}
@@ -28,3 +28,14 @@ func ExecGit(dir string, args ...string) (string, error) {
 
 	return res.Stdout, nil
 }
+
+// Git errors
+type GitError string
+
+func (e GitError) Error() string {
+	return string(e)
+}
+
+const (
+	ErrGitNotARepo = GitError("current dir is not inside a git repo")
+)

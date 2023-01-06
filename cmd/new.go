@@ -138,6 +138,7 @@ func searchRemotesForBranch(branch string) ([]string, error) {
 	return ret, nil
 }
 
+// TODO: move to common
 func getRemotes() ([]string, error) {
 	stdout := bytes.Buffer{}
 	stderr := bytes.Buffer{}

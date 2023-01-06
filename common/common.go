@@ -38,8 +38,12 @@ func ReqArg(args []string, i int, prompt string) (string, error) {
 	if len(args) > i {
 		return args[i], nil
 	}
-
 	// Argument was not defined, so prompt the user for input
+	return Prompt(prompt)
+}
+
+// Prompt the user to enter a value.
+func Prompt(prompt string) (string, error) {
 	sc := bufio.NewScanner(os.Stdin)
 	fmt.Printf("%v ", prompt)
 	sc.Scan()
