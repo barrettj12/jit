@@ -61,16 +61,7 @@ Create new branches using
 		return err
 	}
 	if ok {
-		// Create fork
-		err = common.Execute("gh", "repo", "fork",
-			fmt.Sprintf("%s/%s", user, repo), "--clone=false")
-		if err != nil {
-			return fmt.Errorf("error creating fork: %w", err)
-		}
-
-		// Add as remote
-		ghUser := common.GitHubUser()
-		err := addRemote(ghUser, "")
+		err = fork(user, repo)
 		if err != nil {
 			return err
 		}
