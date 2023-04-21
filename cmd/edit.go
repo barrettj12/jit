@@ -15,7 +15,13 @@ func Edit(args []string) error {
 	}
 
 	editor := defaultEditor()
-	return common.Execute(editor, path)
+
+	res := common.Exec(common.ExecArgs{
+		Cmd:        editor,
+		Args:       []string{path},
+		Background: true,
+	})
+	return res.RunError
 }
 
 func defaultEditor() string {

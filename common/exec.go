@@ -14,6 +14,8 @@ type ExecArgs struct {
 	Dir  string
 
 	Stdout, Stderr io.Writer
+
+	Background bool
 }
 
 type ExecResult struct {
@@ -22,6 +24,7 @@ type ExecResult struct {
 	Stdout, Stderr, Combined string
 }
 
+// TODO: have a way to globally change the default dir
 func Exec(args ExecArgs) ExecResult {
 	cmd := exec.Command(args.Cmd, args.Args...)
 	cmd.Dir = args.Dir
@@ -45,7 +48,13 @@ func Exec(args ExecArgs) ExecResult {
 	}
 	cmd.Stderr = io.MultiWriter(errWriters...)
 
-	runErr := cmd.Run() // this error contains the exit code
+	var runErr error
+	if args.Background {
+		runErr = cmd.Start()
+	} else {
+		runErr = cmd.Run() // this error contains the exit code
+	}
+
 	return ExecResult{
 		RunError: runErr,
 		Stdout:   stdout.String(),
