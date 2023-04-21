@@ -19,6 +19,12 @@ func Remove(args []string) error {
 	// Delete remote tracking branch
 	// git push -d <remote_name> <branchname>
 	// TODO: not working when upstream is in origin/source repo
+
+	// TODO: this should work if the remote branch doesn't exist (no-op)
+	//Delete remote tracking branch barrettj12/rm-webster? [y/n]: y
+	//error: unable to delete 'rm-webster': remote ref does not exist
+	//error: failed to push some refs to 'https://github.com/barrettj12/interview-questions'
+	//ERROR: exit status 1
 	remote, remoteBranch, err := common.PushLoc(branch)
 	if err == common.ErrUpstreamNotFound {
 		// no-op

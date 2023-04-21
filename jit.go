@@ -48,7 +48,7 @@ func main() {
 	case "rm", "remove":
 		err = cmd.Remove(args)
 	case "what":
-		err = common.Execute(filepath.Join(srcDir, "cmd/what.sh"), args...)
+		err = cmd.What(args)
 	case "where":
 		err = common.Execute(filepath.Join(srcDir, "cmd/git-where"), args...)
 	default:

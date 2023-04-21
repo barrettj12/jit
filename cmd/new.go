@@ -46,6 +46,12 @@ func New(args []string) error {
 	//   branch 'fix-info-bundle-formatting' set up to track 'benhoyt/fix-info-bundle-formatting'.
 	//   HEAD is now at 675e36bc44 Fix messed-up channels formatting for "juju info" of a bundle
 
+	// TODO: this should work to fetch a remote branch
+	//   $ jit new nvinuesa:fix-lp1979292
+	// this works:
+	//   $ git fetch nvinuesa fix-lp1979292
+	//   $ jit new fix-lp1979292 nvinuesa/fix-lp1979292
+
 	// cases:
 	//   branch exists locally, not checked out
 	//    -> create new worktree, check out this branch
