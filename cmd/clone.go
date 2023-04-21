@@ -61,7 +61,7 @@ Create new branches using
 		return err
 	}
 	if ok {
-		err = fork(user, repo)
+		err = fork(user, repo, cloneDir)
 		if err != nil {
 			return err
 		}
