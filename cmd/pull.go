@@ -17,9 +17,14 @@ func Pull(args []string) error {
 		return err
 	}
 
+	var pullArgs []string
+	if len(args) >= 1 {
+		pullArgs = args[1:]
+	}
+
 	res := common.Exec(common.ExecArgs{
 		Cmd:    "git",
-		Args:   append([]string{"pull"}, args[1:]...),
+		Args:   append([]string{"pull"}, pullArgs...),
 		Dir:    path,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,

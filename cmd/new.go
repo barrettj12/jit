@@ -51,6 +51,7 @@ func New(args []string) error {
 	// this works:
 	//   $ git fetch nvinuesa fix-lp1979292
 	//   $ jit new fix-lp1979292 nvinuesa/fix-lp1979292
+	// add remote if necessary
 
 	// cases:
 	//   branch exists locally, not checked out
