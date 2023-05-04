@@ -57,5 +57,6 @@ func main() {
 
 	if err != nil {
 		fmt.Println("ERROR:", err)
+		os.Exit(1) // TODO: pass through exit code
 	}
 }
