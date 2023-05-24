@@ -62,6 +62,8 @@ func Remove(args []string) error {
 		}
 		if ok {
 			err = common.Git("worktree", "remove", wktreePath)
+			// TODO: if we get "worktree contains modified or untracked files"
+			// then print these files for the user to see.
 			if err != nil {
 				force, err := confirm("Worktree deletion failed, try again with --force")
 				if err != nil {
@@ -81,10 +83,13 @@ func Remove(args []string) error {
 		}
 	}
 
+	// Fetch merged branch, so that we don't get the error message
+	//     error: The branch ____ is not fully merged.
+	// TODO: get the remote/branch from gh pr view
+	_ = common.Fetch("", "")
+
 	// Delete local branch
 	// git branch -d <branchname>
-	// TODO: git fetch so that we don't get the error message
-	//     error: The branch ____ is not fully merged.
 	ok, err := confirm(fmt.Sprintf("Delete local branch %q", branch))
 	if err != nil {
 		return err

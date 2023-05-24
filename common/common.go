@@ -95,3 +95,23 @@ func PushLoc(localBranch string) (remote, remoteBranch string, err error) {
 func GitHubUser() string {
 	return os.Getenv("GH_USER")
 }
+
+// Fetches the given branches.
+// If remote == "", it will fetch all branches.
+// If branch == "", it will fetch all branches for the given remote.
+func Fetch(remote, branch string) error {
+	args := []string{"fetch"}
+	if remote != "" {
+		args = append(args, remote)
+		if branch != "" {
+			args = append(args, branch)
+		}
+	}
+
+	baseDir, err := RepoBasePath()
+	if err != nil {
+		return err
+	}
+	_, err = ExecGit(baseDir, args...)
+	return err
+}
