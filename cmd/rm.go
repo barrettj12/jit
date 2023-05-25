@@ -50,6 +50,8 @@ func Remove(args []string) error {
 	if err != nil {
 		return err
 	}
+	// TODO: worktrees can be removed but the worktree still exists in Git.
+	// Check if it exists in `git worktrees list`, rather than doing a stat.
 	_, err = os.Stat(wktreePath)
 	if errors.Is(err, os.ErrNotExist) {
 		fmt.Printf("no worktree found at %s\n", wktreePath)
@@ -62,9 +64,12 @@ func Remove(args []string) error {
 		}
 		if ok {
 			err = common.Git("worktree", "remove", wktreePath)
-			// TODO: if we get "worktree contains modified or untracked files"
-			// then print these files for the user to see.
 			if err != nil {
+				// Usually the error is "worktree contains modified or untracked files"
+				// so print these files for the user to see.
+				untrackedFiles, _ := common.ExecGit(wktreePath, "status", "--porcelain", "--ignore-submodules=none")
+				fmt.Println(untrackedFiles)
+
 				force, err := confirm("Worktree deletion failed, try again with --force")
 				if err != nil {
 					return err
