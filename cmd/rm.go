@@ -26,13 +26,12 @@ func Remove(args []string) error {
 	//error: failed to push some refs to 'https://github.com/barrettj12/interview-questions'
 	//ERROR: exit status 1
 	remote, remoteBranch, err := common.PushLoc(branch)
-	if err == common.ErrUpstreamNotFound {
+	switch err {
+	case common.ErrUpstreamNotFound:
 		// no-op
 		fmt.Printf("no remote tracking branch found for branch %q\n", branch)
-	} else {
-		if err != nil {
-			return err
-		}
+
+	case nil:
 		ok, err := confirm(fmt.Sprintf("Delete remote tracking branch %s/%s", remote, remoteBranch))
 		if err != nil {
 			return err
@@ -43,6 +42,9 @@ func Remove(args []string) error {
 				return err
 			}
 		}
+
+	default: // non-nil error
+		return err
 	}
 
 	// Delete worktree
