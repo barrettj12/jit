@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/barrettj12/jit/common"
 	"os"
+
+	"github.com/barrettj12/jit/common"
 )
 
 func What(args []string) error {
@@ -14,7 +15,11 @@ func What(args []string) error {
 
 	remote, remoteBranch, err := common.PushLoc(localBranch)
 	if err != nil {
-		return err
+		fmt.Printf("ERROR: %v\n", err)
+		// Just default to the local branch name
+		remote = common.GitHubUser()
+		remoteBranch = localBranch
+		fmt.Printf("assuming remote branch is %s:%s\n\n", remote, remoteBranch)
 	}
 
 	res := common.Exec(common.ExecArgs{

@@ -25,6 +25,10 @@ func Remove(args []string) error {
 	//error: unable to delete 'rm-webster': remote ref does not exist
 	//error: failed to push some refs to 'https://github.com/barrettj12/interview-questions'
 	//ERROR: exit status 1
+
+	// TODO: need to be able to handle branches with "/" in the name
+	//   $ jit rm imerge/3.3
+	//   Delete remote tracking branch barrettj12/imerge? [y/n]
 	remote, remoteBranch, err := common.PushLoc(branch)
 	switch err {
 	case common.ErrUpstreamNotFound:
@@ -69,6 +73,11 @@ func Remove(args []string) error {
 			if err != nil {
 				// Usually the error is "worktree contains modified or untracked files"
 				// so print these files for the user to see.
+
+				// TODO: the err could be
+				//   fatal: <path> is not a working tree
+				// in which case we need to just skip to the branch removal step
+
 				untrackedFiles, _ := common.ExecGit(wktreePath, "status", "--porcelain", "--ignore-submodules=none")
 				fmt.Println(untrackedFiles)
 

@@ -35,8 +35,8 @@ func main() {
 		err = cmd.Edit(args)
 	case "fork":
 		err = cmd.Fork(args)
-	//case "log":
-	//	err = cmd.Log(args)
+	case "log":
+		err = cmd.Log(args)
 	case "new":
 		err = cmd.New(args)
 	case "publish":
