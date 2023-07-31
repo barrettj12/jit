@@ -1,7 +1,0 @@
-#!/bin/bash
-# pull a different branch which is already checked out
-# usage:  git-pull <branch> [<pull-flags>]
-
-BRANCH=$1
-cd ../$BRANCH
-git pull ${@: 2}
