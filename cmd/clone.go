@@ -25,7 +25,7 @@ func Clone(args []string) error {
 
 	if repo == "" {
 		// arg1 was just "user"
-		repo, err = common.ReqArg(args, 1, fmt.Sprint("Which of %s's repos do you want?", user))
+		repo, err = common.ReqArg(args, 1, fmt.Sprintf("Which of %s's repos do you want?", user))
 		if err != nil {
 			return err
 		}
