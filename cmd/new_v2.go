@@ -40,7 +40,11 @@ func NewV2(args []string) error {
 		return err
 	}
 
-	return git.AddWorktree(branch)
+	err = git.AddBranch(branch, base)
+	if err != nil {
+		return err
+	}
+	return Edit([]string{branch})
 }
 
 // GitProvider provides Go bindings for git commands.
