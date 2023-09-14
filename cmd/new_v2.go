@@ -8,6 +8,7 @@ import (
 )
 
 // TODO: this works but why are we getting "detached HEAD" ?
+// TODO: need to be careful with branch vs remote/branch
 func NewV2(args []string) error {
 	git := newGitProvider()
 
@@ -40,7 +41,7 @@ func NewV2(args []string) error {
 		return err
 	}
 
-	err = git.AddBranch(branch, base)
+	err = git.AddWorktree(branch)
 	if err != nil {
 		return err
 	}
