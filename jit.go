@@ -38,7 +38,7 @@ func main() {
 	case "log":
 		err = cmd.Log(args)
 	case "new":
-		err = cmd.New(args)
+		err = cmd.NewV2(args)
 	case "publish":
 		err = cmd.Publish(args)
 	case "pull":
