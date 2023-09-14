@@ -93,9 +93,9 @@ func (g *gitProvider) AddBranch(branch, base string) error {
 
 func (g *gitProvider) ResolveBranch(branch string) (string, bool) {
 	// Try to resolve as a local branch
-	localBranch, err := common.ExecGit("", "rev-parse", branch)
+	_, err := common.ExecGit("", "rev-parse", branch)
 	if err == nil {
-		return localBranch, true
+		return branch, true
 	}
 
 	// Try to resolve remote:branch or remote/branch
