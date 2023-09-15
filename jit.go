@@ -33,6 +33,8 @@ func main() {
 		err = cmd.Clone(args)
 	case "edit":
 		err = cmd.Edit(args)
+	case "fetch":
+		err = cmd.Fetch(args)
 	case "fork":
 		err = cmd.Fork(args)
 	case "log":
