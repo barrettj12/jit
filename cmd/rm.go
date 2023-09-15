@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/barrettj12/jit/common"
 )
@@ -14,6 +15,11 @@ func Remove(args []string) error {
 	branch, err := common.ReqArg(args, 0, "Which branch would you like to remove?")
 	if err != nil {
 		return err
+	}
+
+	split := strings.SplitN(branch, ":", 2)
+	if len(split) >= 2 {
+		branch = split[1]
 	}
 
 	// Delete remote tracking branch
