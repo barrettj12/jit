@@ -37,7 +37,7 @@ func NewV2(args []string) error {
 	}
 
 	fmt.Printf("Pulling branch %q...\n", base)
-	err = git.Pull(base)
+	err = pull(base)
 	if err != nil {
 		return err
 	}
@@ -82,9 +82,6 @@ type GitProvider interface {
 
 	// Fetch fetches the given branch from the given remote.
 	Fetch(remote, branch string) error
-
-	// Pull pulls the given branch.
-	Pull(branch string) error
 }
 
 func newGitProvider() GitProvider {
@@ -160,10 +157,5 @@ func (g *gitProvider) GetRemote(remoteName string) (url string, err error) {
 
 func (g *gitProvider) Fetch(remote, branch string) error {
 	_, err := common.ExecGit("", "fetch", remote, branch)
-	return err
-}
-
-func (g *gitProvider) Pull(branch string) error {
-	_, err := common.ExecGit("", "pull", branch)
 	return err
 }

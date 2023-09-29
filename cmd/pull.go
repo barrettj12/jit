@@ -12,14 +12,18 @@ func Pull(args []string) error {
 		return err
 	}
 
-	path, err := common.WorktreePath(branch)
-	if err != nil {
-		return err
-	}
-
 	var pullArgs []string
 	if len(args) >= 1 {
 		pullArgs = args[1:]
+	}
+
+	return pull(branch, pullArgs...)
+}
+
+func pull(branch string, pullArgs ...string) error {
+	path, err := common.WorktreePath(branch)
+	if err != nil {
+		return err
 	}
 
 	res := common.Exec(common.ExecArgs{
