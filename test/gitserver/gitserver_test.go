@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -24,12 +25,10 @@ func TestGitServer(t *testing.T) {
 		}
 	})
 
-	cloneCmd := exec.Command("git", "clone",
+	runCommand(t, "", "git", "clone",
 		fmt.Sprintf("http://localhost:8080/%s", repoName),
 		cloneDir,
 	)
-	err = cloneCmd.Run()
-	checkErr(t, err)
 }
 
 func setupTestRepo(t *testing.T) (string, string) {
@@ -50,10 +49,7 @@ func setupTestRepo(t *testing.T) (string, string) {
 	checkErr(t, err)
 
 	// Initialise git repo
-	gitInitCmd := exec.Command("git", "init")
-	gitInitCmd.Dir = repoPath
-	err = gitInitCmd.Run()
-	checkErr(t, err)
+	runCommand(t, repoPath, "git", "init")
 
 	// Add file
 	fileName := "foo.txt"
@@ -65,17 +61,20 @@ func setupTestRepo(t *testing.T) (string, string) {
 	checkErr(t, err)
 
 	// git add and commit
-	gitAddCmd := exec.Command("git", "add", fileName)
-	gitAddCmd.Dir = repoPath
-	err = gitAddCmd.Run()
-	checkErr(t, err)
-
-	gitCommitCmd := exec.Command("git", "commit", "-m", `"Initial commit"`)
-	gitCommitCmd.Dir = repoPath
-	err = gitCommitCmd.Run()
-	checkErr(t, err)
+	runCommand(t, repoPath, "git", "add", fileName)
+	runCommand(t, repoPath, "git", "commit", "-m", `"Initial commit"`)
 
 	return reposRoot, repoName
+}
+
+func runCommand(t *testing.T, dir, name string, args ...string) {
+	cmd := exec.Command(name, args...)
+	cmd.Dir = dir
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf(`error running command %q: %v
+output: %s`, strings.Join(append([]string{name}, args...), " "), err, string(out))
+	}
 }
 
 func checkErr(t *testing.T, err error) {
