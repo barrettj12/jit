@@ -13,5 +13,11 @@ jobs:
       - name: "Set up Go"
         uses: actions/setup-go@v5
 
+      - name: Set up Git config
+        run: |
+          # This needs to be done for the gitserver test
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
+
       - name: "Run Go tests"
         run: go test ./...
