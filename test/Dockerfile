@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
 # Set git config
 RUN git config --global user.name "test"
 RUN git config --global user.email "test"
+RUN git config --global init.defaultBranch 'main'
 # Redirect all GitHub traffic to local Git server
 RUN git config --global url.http://localhost:8080/.insteadOf https://github.com/
 
