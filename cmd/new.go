@@ -114,7 +114,7 @@ func New(args []string) error {
 }
 
 func branchExistsLocally(branch string) bool {
-	err := common.Git("show-ref", "--quiet", fmt.Sprint("refs/heads/%s", branch))
+	err := common.Git("show-ref", "--quiet", fmt.Sprintf("refs/heads/%s", branch))
 	return err == nil
 }
 
@@ -124,7 +124,7 @@ func branchExistsLocally(branch string) bool {
 func searchRemotesForBranch(branch string) ([]string, error) {
 	ret := []string{}
 	lookBranch := func(string) {
-		err := common.Git("show-ref", "--quiet", fmt.Sprint("refs/remotes/%s", branch))
+		err := common.Git("show-ref", "--quiet", fmt.Sprintf("refs/remotes/%s", branch))
 		if err == nil {
 			ret = append(ret, branch)
 		}
@@ -138,7 +138,7 @@ func searchRemotesForBranch(branch string) ([]string, error) {
 			return nil, err
 		}
 		for _, r := range remotes {
-			lookBranch(fmt.Sprint("%s/%s", r, branch))
+			lookBranch(fmt.Sprintf("%s/%s", r, branch))
 		}
 	}
 
