@@ -67,8 +67,19 @@ Create new branches using
 		}
 	}
 
-	// TODO: create new worktree tracking HEAD of source remote
+	// Create new worktree tracking HEAD of source remote
+	currentBranch, err := common.ExecGit(cloneDir, "rev-parse", "--abbrev-ref", "HEAD")
+	if err != nil {
+		return fmt.Errorf("failed to get current branch: %w", err)
+	}
+	// TODO: this should use common code with the new command so that we are
+	//   correctly setting up the upstream branch, etc.
+	_, err = common.ExecGit(cloneDir, "worktree", "add", strings.TrimSpace(currentBranch))
+	if err != nil {
+		return fmt.Errorf("failed to create initial worktree: %w", err)
+	}
 
+	fmt.Printf("created initial worktree %s", currentBranch)
 	return nil
 }
 
