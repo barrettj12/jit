@@ -2,13 +2,20 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 	"os"
 	"strings"
 
 	"github.com/barrettj12/jit/common"
 )
 
-func Fork(args []string) error {
+var forkCmd = &cobra.Command{
+	Use:   "fork",
+	Short: "Fork the current Git repo",
+	RunE:  Fork,
+}
+
+func Fork(cmd *cobra.Command, args []string) error {
 	basePath, err := common.RepoBasePath()
 	if err != nil {
 		return err

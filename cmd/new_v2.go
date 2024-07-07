@@ -2,14 +2,21 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 	"strings"
 
 	"github.com/barrettj12/jit/common"
 )
 
+var newCmd = &cobra.Command{
+	Use:   "new <branch> [based-on]",
+	Short: "Create a new branch",
+	RunE:  NewV2,
+}
+
 // TODO: this works but why are we getting "detached HEAD" ?
 // TODO: need to be careful with branch vs remote/branch
-func NewV2(args []string) error {
+func NewV2(cmd *cobra.Command, args []string) error {
 	git := newGitProvider()
 
 	branch, err := common.ReqArg(args, 0, "Which branch do you want to create/get?")
@@ -51,7 +58,7 @@ func NewV2(args []string) error {
 	if err != nil {
 		return err
 	}
-	return Edit([]string{branch})
+	return Edit(nil, []string{branch})
 }
 
 // GitProvider provides Go bindings for git commands.

@@ -1,12 +1,19 @@
 package cmd
 
 import (
+	"github.com/spf13/cobra"
 	"os"
 
 	"github.com/barrettj12/jit/common"
 )
 
-func Pull(args []string) error {
+var pullCmd = &cobra.Command{
+	Use:   "pull <branch> <options>",
+	Short: "Pull a remote branch",
+	RunE:  Pull,
+}
+
+func Pull(cmd *cobra.Command, args []string) error {
 	branch, err := common.ReqArg(args, 0, "Which branch would you like to pull?")
 	if err != nil {
 		return err

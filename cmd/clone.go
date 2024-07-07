@@ -2,16 +2,22 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/barrettj12/jit/common"
+	"github.com/spf13/cobra"
 	"net/url"
 	"path/filepath"
 	"strings"
-
-	"github.com/barrettj12/jit/common"
 )
+
+var cloneCmd = &cobra.Command{
+	Use:   "clone <user>/<repo>",
+	Short: "Clone a repo from GitHub",
+	RunE:  Clone,
+}
 
 // Clone clones the provided repo, using the workflow described in
 // https://morgan.cugerone.com/blog/how-to-use-git-worktree-and-in-a-clean-way/
-func Clone(args []string) error {
+func Clone(cmd *cobra.Command, args []string) error {
 	var user, repo string
 
 	arg1, err := common.ReqArg(args, 0, "URL of Git repo to clone:")

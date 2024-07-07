@@ -2,13 +2,20 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
 
 	"github.com/barrettj12/jit/common"
 )
 
-func Publish(args []string) error {
+var publishCmd = &cobra.Command{
+	Use:   "publish",
+	Short: "Publish a Git repo to GitHub",
+	RunE:  Publish,
+}
+
+func Publish(cmd *cobra.Command, args []string) error {
 	// Run git status to check if repo exists
 	_, err := common.ExecGit("", "status")
 	switch err {

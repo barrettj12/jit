@@ -2,16 +2,23 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 
 	"github.com/barrettj12/jit/common"
 )
+
+var fetchCmd = &cobra.Command{
+	Use:   "fetch <branch>",
+	Short: "Fetch a remote branch",
+	RunE:  Fetch,
+}
 
 // Accepts the following formats:
 //
 //	fetch <remote> <branch>
 //	fetch <remote>:<branch>
 //	fetch <remote>/<branch>
-func Fetch(args []string) error {
+func Fetch(cmd *cobra.Command, args []string) error {
 	git := newGitProvider()
 
 	remote, err := common.ReqArg(args, 0, "What branch would you like to fetch?")

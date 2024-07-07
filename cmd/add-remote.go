@@ -2,12 +2,19 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 	"path/filepath"
 
 	"github.com/barrettj12/jit/common"
 )
 
-func AddRemote(args []string) error {
+var addRemoteCmd = &cobra.Command{
+	Use:   "add-remote <user>",
+	Short: "Add a remote to a repo",
+	RunE:  AddRemote,
+}
+
+func AddRemote(cmd *cobra.Command, args []string) error {
 	remoteName, err := common.ReqArg(args, 0, "Which branch would you like to remove?")
 	if err != nil {
 		return err
