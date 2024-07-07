@@ -21,5 +21,6 @@ COPY _build/gitserver /usr/local/bin
 
 ENV JIT_DIR=/home/ubuntu/git
 ENV GIT_PROJECT_ROOT=/home/ubuntu/testrepos
+ENV JIT_NONINTERACTIVE=1
 # Run Git server in background
 CMD gitserver

@@ -6,7 +6,7 @@ func AddSubcommands(baseCmd *cobra.Command) {
 	baseCmd.AddCommand(
 		addRemoteCmd,
 		applyCmd,
-		cloneCmd,
+		newCloneCmd(),
 		editCmd,
 		fetchCmd,
 		forkCmd,

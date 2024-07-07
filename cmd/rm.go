@@ -6,15 +6,17 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/barrettj12/jit/common"
 )
 
 var removeCmd = &cobra.Command{
-	Use:   "rm <branch>",
-	Short: "Remove a branch from remote & local",
-	RunE:  Remove,
+	Use:     "remove <branch>",
+	Aliases: []string{"rm", "delete"},
+	Short:   "Remove a branch from remote & local",
+	RunE:    Remove,
 }
 
 func Remove(cmd *cobra.Command, args []string) error {
@@ -145,6 +147,12 @@ func Remove(cmd *cobra.Command, args []string) error {
 
 // TODO: move this to common
 func confirm(prompt string) (bool, error) {
+	nonInteractive := os.Getenv("JIT_NONINTERACTIVE")
+	parsed, err := strconv.ParseBool(nonInteractive)
+	if err == nil && parsed {
+		panic("internal error: common.Prompt called with JIT_NONINTERACTIVE=1")
+	}
+
 	sc := bufio.NewScanner(os.Stdin)
 	fmt.Printf("%s? [y/n]: ", prompt)
 	sc.Scan()

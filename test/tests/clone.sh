@@ -4,7 +4,7 @@ set -ex
 # Set up test repo to be cloned
 setup_test_repo clone/repo1
 
-jit clone clone/repo1 <<< 'n' # don't create a fork
+jit clone clone/repo1 --fork=false
 
 # Test clone is set up correctly
 cd $JIT_DIR/clone/repo1

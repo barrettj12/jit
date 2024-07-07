@@ -7,13 +7,21 @@ import (
 	"github.com/spf13/cobra"
 	"net/url"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
-var cloneCmd = &cobra.Command{
-	Use:   "clone <user>/<repo>",
-	Short: "Clone a repo from GitHub",
-	RunE:  Clone,
+func newCloneCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "clone <user>/<repo>",
+		Short: "Clone a repo from GitHub",
+		RunE:  Clone,
+	}
+
+	// Set flags
+	cmd.Flags().String("fork", "", "whether to create a fork")
+
+	return cmd
 }
 
 // Clone clones the provided repo, using the workflow described in
@@ -67,11 +75,27 @@ Create new branches using
 `[1:], user, repo, cloneDir)
 
 	// Fork repo and add as remote
-	ok, err := confirm("Create a fork")
+	forkFlagVal, err := cmd.Flags().GetString("fork")
 	if err != nil {
-		return err
+		return fmt.Errorf("internal error: couldn't get value of --fork flag: %w", err)
 	}
-	if ok {
+
+	var shouldFork bool
+	if forkFlagVal == "" {
+		// The user did not specify when typing the command whether we should
+		// fork the repo or not. Ask them.
+		shouldFork, err = confirm("Create a fork")
+		if err != nil {
+			return err
+		}
+	} else {
+		shouldFork, err = strconv.ParseBool(forkFlagVal)
+		if err != nil {
+			return fmt.Errorf("couldn't parse value %q of --fork flag: %w", forkFlagVal, err)
+		}
+	}
+
+	if shouldFork {
 		err = fork(user, repo, cloneDir)
 		if err != nil {
 			return err
