@@ -35,6 +35,11 @@ func SetConfig(dir, key, value string) error {
 	return err
 }
 
+func Apply(path string) error {
+	_, err := internalExec("", "apply", path)
+	return err
+}
+
 // Runs git with the given args, returning stdout and/or any error.
 func internalExec(dir string, args ...string) (string, error) {
 	cmd := exec.Command("git", args...)

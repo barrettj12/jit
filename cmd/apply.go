@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/barrettj12/jit/common/git"
 	"github.com/spf13/cobra"
 	"io"
 	"net/http"
@@ -47,5 +48,5 @@ func Apply(cmd *cobra.Command, args []string) error {
 		path = file.Name()
 	}
 
-	return common.Git("apply", path)
+	return git.Apply(path)
 }

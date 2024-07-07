@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/barrettj12/jit/common"
+	"github.com/barrettj12/jit/common/git"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +19,7 @@ var fetchCmd = &cobra.Command{
 //	fetch <remote>:<branch>
 //	fetch <remote>/<branch>
 func Fetch(cmd *cobra.Command, args []string) error {
-	git := newGitProvider()
+	gitp := newGitProvider()
 
 	remote, err := common.ReqArg(args, 0, "What branch would you like to fetch?")
 	if err != nil {
@@ -26,7 +27,7 @@ func Fetch(cmd *cobra.Command, args []string) error {
 	}
 
 	if len(args) < 2 {
-		_, resolved := git.ResolveBranch(remote)
+		_, resolved := gitp.ResolveBranch(remote)
 		if resolved {
 			return nil
 		}
@@ -40,16 +41,19 @@ func Fetch(cmd *cobra.Command, args []string) error {
 	}
 
 	// Add remote if necessary
-	_, err = git.GetRemote(remote)
+	remoteExists, err := git.RemoteExists("", remote)
 	if err != nil {
-		err = git.AddRemote(remote, "")
+		return fmt.Errorf("could not determine if remote %q exists: %w", remote, err)
+	}
+	if !remoteExists {
+		err = addRemote(remote, "")
 		if err != nil {
 			return fmt.Errorf("could not add remote %q: %w", remote, err)
 		}
 	}
 
 	// Fetch branch if necessary
-	err = git.Fetch(remote, branch)
+	err = git.Fetch("", remote, branch)
 	if err != nil {
 		return fmt.Errorf("could not fetch remote branch %q: %w", branch, err)
 	}

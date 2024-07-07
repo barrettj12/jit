@@ -18,6 +18,7 @@ func Edit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// TODO: this needs to use the methods in common/worktree.go
 	path, err := common.WorktreePath(branch)
 	if err != nil {
 		return err
