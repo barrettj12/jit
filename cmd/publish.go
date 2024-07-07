@@ -1,10 +1,13 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/barrettj12/jit/common"
 )
@@ -117,4 +120,26 @@ to upload to GitHub.
 	// git push <remote> HEAD -u
 	_, err = common.ExecGit("", "push", remoteName, "HEAD", "-u")
 	return err
+}
+
+// TODO: move to common
+func getRemotes() ([]string, error) {
+	stdout := bytes.Buffer{}
+	stderr := bytes.Buffer{}
+	cmd := exec.Command("git", "remote")
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
+	if err != nil {
+		// Read stderr for error info
+		errInfo := stderr.String()
+		return nil, fmt.Errorf("%s\n%s", errInfo, err)
+	}
+
+	remotes := strings.Split(stdout.String(), "\n")
+	if remotes[len(remotes)-1] == "" {
+		remotes = remotes[:len(remotes)-1]
+	}
+	return remotes, nil
 }
