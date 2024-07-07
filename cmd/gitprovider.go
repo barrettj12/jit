@@ -2,64 +2,12 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"strings"
 
 	"github.com/barrettj12/jit/common"
 )
 
-var newCmd = &cobra.Command{
-	Use:   "new <branch> [based-on]",
-	Short: "Create a new branch",
-	RunE:  NewV2,
-}
-
-// TODO: this works but why are we getting "detached HEAD" ?
-// TODO: need to be careful with branch vs remote/branch
-func NewV2(cmd *cobra.Command, args []string) error {
-	git := newGitProvider()
-
-	branch, err := common.ReqArg(args, 0, "Which branch do you want to create/get?")
-	if err != nil {
-		return err
-	}
-
-	if len(args) < 2 {
-		// Resolve an existing branch name
-		branchSpec, ok := git.ResolveBranch(branch)
-		if ok {
-			return git.AddWorktree(branchSpec)
-		}
-		fmt.Printf("could not resolve branch %q\n", branch)
-	}
-
-	// If we're here, either:
-	// - The user specified a base branch for the new worktree
-	// - We couldn't resolve the provided arg to an existing branch
-	// So we'll be creating a new branch based on an existing branch.
-
-	base, err := common.ReqArg(args, 1, "Which branch should this be based on?")
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("Pulling branch %q...\n", base)
-	err = pull(base)
-	if err != nil {
-		return err
-	}
-
-	err = git.AddBranch(branch, base)
-	if err != nil {
-		return err
-	}
-
-	err = git.AddWorktree(branch)
-	if err != nil {
-		return err
-	}
-	return Edit(nil, []string{branch})
-}
+// TODO: all this needs to be replaced with the common/git package
 
 // GitProvider provides Go bindings for git commands.
 type GitProvider interface {
@@ -96,7 +44,6 @@ func newGitProvider() GitProvider {
 }
 
 // gitProvider implements GitProvider.
-// TODO: move to separate package
 type gitProvider struct{}
 
 func (g *gitProvider) AddBranch(branch, base string) error {

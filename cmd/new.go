@@ -1,168 +1,124 @@
 package cmd
 
 import (
-	"bytes"
 	"fmt"
-	"os/exec"
-	"strings"
-
 	"github.com/barrettj12/jit/common"
+	"github.com/barrettj12/jit/common/git"
+	"github.com/spf13/cobra"
+	"strings"
 )
 
-// For an existing branch "foo", need to run
-//
-//	git worktree add <repo>/foo
-//
-// For a new branch "bar" based on "foo", need to run
-//
-//	git worktree add <repo>/bar foo -b bar
-func New(args []string) error {
-	branch, err := common.ReqArg(args, 0, "Which branch do you want to create/get?")
-	if err != nil {
-		return err
-	}
+var newDocs = `
+Create a new worktree or branch. This command operates in three modes.
 
-	// TODO: if remote branch not found, then try fetch
-	//   $ jit new ip-address pengale/main
-	//   Preparing worktree (new branch 'ip-address')
-	//   fatal: not a valid object name: 'pengale/main'
-	//   ERROR: exit status 255
+    jit new <branch>
 
-	// TODO: fix this
-	//   $ jit new main
-	//   Which branch should this be based on? source/main
-	//   Preparing worktree (new branch 'main')
-	//   fatal: a branch named 'main' already exists
-	//   ERROR: exit status 255
-	//   $ jit new main main
-	//   Preparing worktree (new branch 'main')
-	//   fatal: a branch named 'main' already exists
-	//   ERROR: exit status 255
+checks out an existing branch named <branch>, in a new worktree, which will
+also be named <branch>.
 
-	// TODO: should be able to find branch in remote (i.e. no prompt)
-	//   $ jit new fix-info-bundle-formatting
-	//   Which branch should this be based on? benhoyt/fix-info-bundle-formatting
-	//   Preparing worktree (new branch 'fix-info-bundle-formatting')
-	//   branch 'fix-info-bundle-formatting' set up to track 'benhoyt/fix-info-bundle-formatting'.
-	//   HEAD is now at 675e36bc44 Fix messed-up channels formatting for "juju info" of a bundle
+    jit new <branch> <base>
 
-	// TODO: this should work to fetch a remote branch
-	//   $ jit new nvinuesa:fix-lp1979292
-	// this works:
-	//   $ git fetch nvinuesa fix-lp1979292
-	//   $ jit new fix-lp1979292 nvinuesa/fix-lp1979292
-	// add remote if necessary
+creates a new branch <branch> based on <base>, and checks out <branch> in a new
+worktree named <branch>.
 
-	// cases:
-	//   branch exists locally, not checked out
-	//    -> create new worktree, check out this branch
-	//   branch exists locally, checked out
-	//    -> error, branch already exists and checked out
-	//   branch exists in a remote
-	//    -> create local branch, tracking remote branch
-	//   branch doesn't exist
-	//    -> create local branch, ask user what branch to base on
+    jit new <remote>:<branch>
 
-	// Check if branch exists locally
-	if branchExistsLocally(branch) {
-		// Create new worktree using this branch
-		path, err := common.WorktreePath(branch)
-		if err != nil {
-			return err
-		}
-		return common.Git("worktree", "add", path)
-	}
+checks out <branch> from the remote <remote> in a new worktree called <branch>.
+If the remote does not already exist, it will automatically be created.
+`[1:]
 
-	// Try to find branch in remotes
-	branches, err := searchRemotesForBranch(branch)
-	if len(branches) > 1 {
-		return fmt.Errorf("multiple branches matching %q, please specify remote\n%s\n",
-			branch, branches)
-	}
-	if len(branches) == 1 {
-		// Create new local branch tracking remote branch
-		remoteRef := branches[0]
-		split := strings.Split(remoteRef, "/")
-		newBranch := split[len(split)-1]
-
-		path, err := common.WorktreePath(newBranch)
-		if err != nil {
-			return err
-		}
-		return common.Git("worktree", "add", path, remoteRef)
-	}
-
-	// len(branches) = 0, i.e. branch was not found in remotes.
-	// In this case, we create a brand-new branch
-	base, err := common.ReqArg(args, 1, "Which branch should this be based on?")
-	if err != nil {
-		return err
-	}
-
-	// Create worktree
-	path, err := common.WorktreePath(branch)
-	if err != nil {
-		return err
-	}
-
-	err = common.Git("worktree", "add", path, base, "-b", branch)
-	if err != nil {
-		return err
-	}
-
-	return Edit(nil, []string{branch})
+var newCmd = &cobra.Command{
+	Use:   "new <branch> [base]",
+	Short: "Create a new branch",
+	Long:  newDocs,
+	RunE:  New,
 }
 
-func branchExistsLocally(branch string) bool {
-	err := common.Git("show-ref", "--quiet", fmt.Sprintf("refs/heads/%s", branch))
-	return err == nil
+func New(cmd *cobra.Command, args []string) error {
+	if len(args) > 1 {
+		return newWorktreeNewBranchWithBase(args[0], args[1])
+	}
+	if strings.Contains(args[0], ":") {
+		split := strings.SplitN(args[0], ":", 2)
+		return newWorktreeBasedOnRemoteBranch(split[0], split[1])
+	}
+	return newWorktreeBasedOnExistingBranch(args[0])
 }
 
-// If argument is `remote/branch` -> check this exists
-// If argument is just `branch` -> search all remotes for this branch
-// Return list of all matching `remote/branch`
-func searchRemotesForBranch(branch string) ([]string, error) {
-	ret := []string{}
-	lookBranch := func(string) {
-		err := common.Git("show-ref", "--quiet", fmt.Sprintf("refs/remotes/%s", branch))
-		if err == nil {
-			ret = append(ret, branch)
-		}
-	}
-
-	if strings.Contains(branch, "/") {
-		lookBranch(branch)
-	} else {
-		remotes, err := getRemotes()
-		if err != nil {
-			return nil, err
-		}
-		for _, r := range remotes {
-			lookBranch(fmt.Sprintf("%s/%s", r, branch))
-		}
-	}
-
-	return ret, nil
-}
-
-// TODO: move to common
-func getRemotes() ([]string, error) {
-	stdout := bytes.Buffer{}
-	stderr := bytes.Buffer{}
-	cmd := exec.Command("git", "remote")
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-
-	err := cmd.Run()
+func newWorktreeBasedOnExistingBranch(branch string) error {
+	repoBasePath, err := common.RepoBasePath()
 	if err != nil {
-		// Read stderr for error info
-		errInfo := stderr.String()
-		return nil, fmt.Errorf("%s\n%s", errInfo, err)
+		return fmt.Errorf("couldn't get repo base path: %w", err)
 	}
 
-	remotes := strings.Split(stdout.String(), "\n")
-	if remotes[len(remotes)-1] == "" {
-		remotes = remotes[:len(remotes)-1]
+	fmt.Printf("creating new worktree based on existing local branch %q\n", branch)
+	err = git.AddWorktree(repoBasePath, branch)
+	if err != nil {
+		return fmt.Errorf("couldn't create worktree for branch %q: %w", branch, err)
 	}
-	return remotes, nil
+
+	// We can't set the upstream branch yet, as it doesn't yet exist. We have
+	// to wait until push time to do this.
+	return nil
+}
+
+func newWorktreeNewBranchWithBase(newBranch, base string) error {
+	fmt.Printf("creating new branch %q based on %q\n", newBranch, base)
+	err := git.CreateBranch(newBranch, base)
+	if err != nil {
+		return fmt.Errorf("couldn't create branch %q: %w", newBranch, err)
+	}
+
+	repoBasePath, err := common.RepoBasePath()
+	if err != nil {
+		return fmt.Errorf("couldn't get repo base path: %w", err)
+	}
+	err = git.AddWorktree(repoBasePath, newBranch)
+	if err != nil {
+		return fmt.Errorf("couldn't create worktree for branch %q: %w", newBranch, err)
+	}
+
+	// We can't set the upstream branch yet, as it doesn't yet exist. We have
+	// to wait until push time to do this.
+	return nil
+}
+
+func newWorktreeBasedOnRemoteBranch(remote, branch string) error {
+	repoBasePath, err := common.RepoBasePath()
+	if err != nil {
+		return fmt.Errorf("couldn't get repo base path: %w", err)
+	}
+
+	fmt.Printf("creating new worktree based on remote branch %s:%s\n", remote, branch)
+
+	// Add remote if it doesn't exist
+	remoteExists, err := git.RemoteExists(repoBasePath, remote)
+	if err != nil {
+		return fmt.Errorf("couldn't calculate if remote %q exists: %w", remote, err)
+	}
+	if !remoteExists {
+		err = addRemote(remote, "")
+		if err != nil {
+			return fmt.Errorf("couldn't add remote %q: %w", remote, err)
+		}
+	}
+
+	// Fetch the remote branch
+	err = git.Fetch(remote, branch)
+	if err != nil {
+		return fmt.Errorf("couldn't fetch remote branch %s:%s: %w", remote, branch, err)
+	}
+
+	// Create new branch
+	// This step also sets the upstream, since we are basing it on a remote branch.
+	err = git.CreateBranch(branch, fmt.Sprintf("%s/%s", remote, branch))
+	if err != nil {
+		return fmt.Errorf("couldn't create branch %q: %w", branch, err)
+	}
+
+	err = git.AddWorktree(repoBasePath, branch)
+	if err != nil {
+		return fmt.Errorf("couldn't create worktree for branch %q: %w", branch, err)
+	}
+	return nil
 }
