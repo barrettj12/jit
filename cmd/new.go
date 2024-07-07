@@ -110,7 +110,7 @@ func New(args []string) error {
 		return err
 	}
 
-	return Edit([]string{branch})
+	return Edit(nil, []string{branch})
 }
 
 func branchExistsLocally(branch string) bool {

@@ -4,13 +4,20 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/spf13/cobra"
 	"os"
 	"strings"
 
 	"github.com/barrettj12/jit/common"
 )
 
-func Remove(args []string) error {
+var removeCmd = &cobra.Command{
+	Use:   "rm <branch>",
+	Short: "Remove a branch from remote & local",
+	RunE:  Remove,
+}
+
+func Remove(cmd *cobra.Command, args []string) error {
 	// TODO: add --force option
 	branch, err := common.ReqArg(args, 0, "Which branch would you like to remove?")
 	if err != nil {

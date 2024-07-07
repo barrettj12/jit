@@ -2,12 +2,20 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 	"os"
 
 	"github.com/barrettj12/jit/common"
 )
 
-func What(args []string) error {
+// TODO: rename this to `info` ?
+var whatCmd = &cobra.Command{
+	Use:   "what <branch>",
+	Short: "Get info about a branch",
+	RunE:  What,
+}
+
+func What(cmd *cobra.Command, args []string) error {
 	localBranch, err := common.ReqArg(args, 0, "Branch to get info for:")
 	if err != nil {
 		return err
