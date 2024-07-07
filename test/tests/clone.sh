@@ -12,3 +12,7 @@ cd $JIT_DIR/clone/repo1
 git remote | grep 'clone'
 # Test initial worktree 'main' was created
 ls | grep 'main'
+
+# Cleanup
+rm -rf $GIT_PROJECT_ROOT/clone
+rm -rf $JIT_DIR/clone
