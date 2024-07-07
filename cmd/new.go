@@ -52,7 +52,17 @@ func newWorktreeBasedOnExistingBranch(branch string) error {
 	}
 
 	fmt.Printf("creating new worktree based on existing local branch %q\n", branch)
-	err = git.AddWorktree(repoBasePath, branch)
+
+	worktreePath := worktreePathForBranchName(branch)
+	if worktreePath != branch {
+		fmt.Printf("WARNING branch name %q contains slashes, worktree path will be %q instead", branch, worktreePath)
+	}
+
+	err = git.AddWorktree(git.AddWorktreeArgs{
+		Dir:          repoBasePath,
+		WorktreePath: worktreePath,
+		Branch:       branch,
+	})
 	if err != nil {
 		return fmt.Errorf("couldn't create worktree for branch %q: %w", branch, err)
 	}
@@ -63,6 +73,8 @@ func newWorktreeBasedOnExistingBranch(branch string) error {
 }
 
 func newWorktreeNewBranchWithBase(newBranch, base string) error {
+	/// TODO: pull base branch
+
 	fmt.Printf("creating new branch %q based on %q\n", newBranch, base)
 	err := git.CreateBranch(newBranch, base)
 	if err != nil {
@@ -73,7 +85,17 @@ func newWorktreeNewBranchWithBase(newBranch, base string) error {
 	if err != nil {
 		return fmt.Errorf("couldn't get repo base path: %w", err)
 	}
-	err = git.AddWorktree(repoBasePath, newBranch)
+
+	worktreePath := worktreePathForBranchName(newBranch)
+	if worktreePath != newBranch {
+		fmt.Printf("WARNING branch name %q contains slashes, worktree path will be %q instead", newBranch, worktreePath)
+	}
+
+	err = git.AddWorktree(git.AddWorktreeArgs{
+		Dir:          repoBasePath,
+		WorktreePath: worktreePath,
+		Branch:       newBranch,
+	})
 	if err != nil {
 		return fmt.Errorf("couldn't create worktree for branch %q: %w", newBranch, err)
 	}
@@ -116,9 +138,24 @@ func newWorktreeBasedOnRemoteBranch(remote, branch string) error {
 		return fmt.Errorf("couldn't create branch %q: %w", branch, err)
 	}
 
-	err = git.AddWorktree(repoBasePath, branch)
+	worktreePath := worktreePathForBranchName(branch)
+	if worktreePath != branch {
+		fmt.Printf("WARNING branch name %q contains slashes, worktree path will be %q instead", branch, worktreePath)
+	}
+
+	err = git.AddWorktree(git.AddWorktreeArgs{
+		Dir:          repoBasePath,
+		WorktreePath: worktreePath,
+		Branch:       branch,
+	})
 	if err != nil {
 		return fmt.Errorf("couldn't create worktree for branch %q: %w", branch, err)
 	}
 	return nil
+}
+
+// If a branch name contains slashes, the corresponding worktree path should
+// have them replaced with underscores.
+func worktreePathForBranchName(branchName string) string {
+	return strings.ReplaceAll(branchName, "/", "_")
 }

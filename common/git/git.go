@@ -41,8 +41,21 @@ func Clone(opts CloneArgs) error {
 	return err
 }
 
-func AddWorktree(dir, name string) error {
-	_, err := internalExec(dir, "worktree", "add", name)
+// git worktree add <path>   - creates or checks out branch base(path)
+// git worktree add <path> <branch>
+
+type AddWorktreeArgs struct {
+	Dir          string // directory to run the command in
+	WorktreePath string // path for the new worktree
+	Branch       string // branch to check out in the new worktree (optional)
+}
+
+func AddWorktree(opts AddWorktreeArgs) error {
+	args := []string{"worktree", "add", opts.WorktreePath}
+	if opts.Branch != "" {
+		args = append(args, opts.Branch)
+	}
+	_, err := internalExec(opts.Dir, args...)
 	return err
 }
 

@@ -34,3 +34,12 @@ git branch | grep '* branch3'
 git rev-parse --abbrev-ref 'branch3@{u}' | grep 'new2/branch3'
 git rev-parse --abbrev-ref 'branch3@{push}' | grep 'new2/branch3'
 cd ..
+
+# Check that branch names containing a slash '/' are supported
+# Regression test for https://github.com/barrettj12/jit/issues/6
+git branch 'branch/with/slashes' main
+jit new 'branch/with/slashes'
+cd 'branch_with_slashes'
+# shellcheck disable=SC2063
+git branch | grep '* branch/with/slashes'
+cd ..
