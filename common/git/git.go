@@ -58,8 +58,8 @@ func CreateBranch(name, base string) error {
 	return nil
 }
 
-func RemoteExists(remote string) (bool, error) {
-	_, err := internalExec("", "remote", "get-url", remote)
+func RemoteExists(dir, remote string) (bool, error) {
+	_, err := internalExec(dir, "remote", "get-url", remote)
 	if err == nil {
 		return true, nil
 	}

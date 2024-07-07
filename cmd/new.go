@@ -100,10 +100,15 @@ func newWorktreeNewBranchWithBase(newBranch, base string) error {
 }
 
 func newWorktreeBasedOnRemoteBranch(remote, branch string) error {
+	repoBasePath, err := common.RepoBasePath()
+	if err != nil {
+		return fmt.Errorf("couldn't get repo base path: %w", err)
+	}
+
 	fmt.Printf(`creating new worktree based on remote branch "%s:%s"\n`, remote, branch)
 
 	// Add remote if it doesn't exist
-	remoteExists, err := git.RemoteExists(remote)
+	remoteExists, err := git.RemoteExists(repoBasePath, remote)
 	if err != nil {
 		return fmt.Errorf("couldn't calculate if remote %q exists: %w", remote, err)
 	}
