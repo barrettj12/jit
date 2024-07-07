@@ -46,6 +46,29 @@ func AddWorktree(dir, name string) error {
 	return err
 }
 
+// Set the upstream of localBranch to remote:remoteBranch.
+func SetUpstream(localBranch, remote, remoteBranch string) error {
+	// TODO: implement
+	return nil
+}
+
+// Create a new branch `name` based on `base`.
+func CreateBranch(name, base string) error {
+	// TODO: implement
+	return nil
+}
+
+func RemoteExists(remote string) (bool, error) {
+	_, err := internalExec("", "remote", "get-url", remote)
+	if err == nil {
+		return true, nil
+	}
+	if IsNoSuchRemoteErr(err) {
+		return false, nil
+	}
+	return false, err
+}
+
 // Runs git with the given args, returning stdout and/or any error.
 func internalExec(dir string, args ...string) (string, error) {
 	cmd := exec.Command("git", args...)

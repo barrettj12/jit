@@ -8,12 +8,6 @@ import (
 	"github.com/barrettj12/jit/common"
 )
 
-var newCmd = &cobra.Command{
-	Use:   "new <branch> [based-on]",
-	Short: "Create a new branch",
-	RunE:  NewV2,
-}
-
 // TODO: this works but why are we getting "detached HEAD" ?
 // TODO: need to be careful with branch vs remote/branch
 func NewV2(cmd *cobra.Command, args []string) error {
