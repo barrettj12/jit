@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/barrettj12/jit/common"
+	"github.com/barrettj12/jit/common/git"
 	"github.com/spf13/cobra"
 	"net/url"
 	"path/filepath"
@@ -47,9 +48,13 @@ func Clone(cmd *cobra.Command, args []string) error {
 	}
 	cloneDir := filepath.Join(jitDir, user, repo)
 
-	// Make a bare repo
-	// git clone --bare <repository> <directory>
-	err = common.Git("clone", "--bare", "--origin", user, repoURL, filepath.Join(cloneDir, ".git"))
+	// Clone the repo
+	err = git.Clone(git.CloneArgs{
+		RepoURL:    repoURL,
+		CloneDir:   filepath.Join(cloneDir, ".git"),
+		Bare:       true,
+		OriginName: user,
+	})
 	if err != nil {
 		return fmt.Errorf("error cloning repo: %w", err)
 	}
@@ -74,18 +79,18 @@ Create new branches using
 	}
 
 	// Create new worktree tracking HEAD of source remote
-	currentBranch, err := common.ExecGit(cloneDir, "rev-parse", "--abbrev-ref", "HEAD")
+	currentBranch, err := git.CurrentBranch()
 	if err != nil {
 		return fmt.Errorf("failed to get current branch: %w", err)
 	}
 	// TODO: this should use common code with the new command so that we are
 	//   correctly setting up the upstream branch, etc.
-	_, err = common.ExecGit(cloneDir, "worktree", "add", strings.TrimSpace(currentBranch))
+	err = git.AddWorktree(cloneDir, currentBranch)
 	if err != nil {
 		return fmt.Errorf("failed to create initial worktree: %w", err)
 	}
 
-	fmt.Printf("created initial worktree %s", currentBranch)
+	fmt.Printf("created initial worktree %s\n", currentBranch)
 	return nil
 }
 
