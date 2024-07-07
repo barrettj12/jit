@@ -51,10 +51,14 @@ func newWorktreeBasedOnExistingBranch(branch string) error {
 }
 
 func newWorktreeNewBranchWithBase(newBranch, base string) error {
-	/// TODO: pull base branch
+	fmt.Printf("Pulling branch %q...\n", base)
+	err := pull(base)
+	if err != nil {
+		return err
+	}
 
 	fmt.Printf("creating new branch %q based on %q\n", newBranch, base)
-	err := git.CreateBranch(newBranch, base)
+	err = git.CreateBranch(newBranch, base)
 	if err != nil {
 		return fmt.Errorf("couldn't create branch %q: %w", newBranch, err)
 	}
