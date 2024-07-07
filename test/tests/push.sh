@@ -12,9 +12,9 @@ jit new branch1 main
 cd branch1
 # Check no upstream is set
 [ -z "$(git rev-parse --abbrev-ref '@{push}')" ]
-# Add a commit, push it, and check the remote has the commit
+# Add a commit and push it
 add_commit one.txt
 jit push
- # Check file exists on remote
-[ -f "$GIT_PROJECT_ROOT/push/repo1/one.txt" ]
+ # Check commit exists on remote
+git -C "$GIT_PROJECT_ROOT/push/repo1" log branch1 | grep 'one.txt'
 git rev-parse --abbrev-ref '@{push}' || grep 'push/branch1'
