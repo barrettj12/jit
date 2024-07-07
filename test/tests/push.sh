@@ -15,6 +15,19 @@ cd branch1
 # Add a commit and push it
 add_commit one.txt
 jit push
- # Check commit exists on remote
+# Check commit exists on remote
 git -C "$GIT_PROJECT_ROOT/push/repo1" log branch1 | grep 'one.txt'
+# Upstream branch has automatically been set
 git rev-parse --abbrev-ref '@{push}' || grep 'push/branch1'
+
+
+# Now that the push target is set up, try push another commit
+add_commit two.txt
+jit push
+ # Check commit exists on remote
+git -C "$GIT_PROJECT_ROOT/push/repo1" log branch1 | grep 'two.txt'
+
+
+# Cleanup
+rm -rf $GIT_PROJECT_ROOT/push
+rm -rf $JIT_DIR/push
