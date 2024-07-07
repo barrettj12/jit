@@ -129,6 +129,11 @@ func SetUpstream(dir, localBranch, remote, remoteBranch string) error {
 	return err
 }
 
+func AddRemote(remoteName, url string) error {
+	_, err := internalExec("", "remote", "add", remoteName, url)
+	return err
+}
+
 // Runs git with the given args, returning stdout and/or any error.
 func internalExec(dir string, args ...string) (string, error) {
 	cmd := exec.Command("git", args...)

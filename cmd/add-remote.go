@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/barrettj12/jit/common/git"
 	"github.com/spf13/cobra"
 	"path/filepath"
 
@@ -15,7 +16,7 @@ var addRemoteCmd = &cobra.Command{
 }
 
 func AddRemote(cmd *cobra.Command, args []string) error {
-	remoteName, err := common.ReqArg(args, 0, "Which branch would you like to remove?")
+	remoteName, err := common.ReqArg(args, 0, "Which remote would you like to add?")
 	if err != nil {
 		return err
 	}
@@ -37,7 +38,7 @@ func addRemote(name, url string) error {
 		url = githubURL(name, repoName)
 	}
 
-	_, err := common.ExecGit("", "remote", "add", name, url)
+	err := git.AddRemote(name, url)
 	if err != nil {
 		return fmt.Errorf("error adding remote: %w", err)
 	}
