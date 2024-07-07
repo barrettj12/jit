@@ -14,6 +14,7 @@ git remote | grep 'clone'
 [ "$(git config remote.clone.fetch)" == '+refs/heads/*:refs/remotes/clone/*' ]
 # Test initial worktree 'main' was created
 ls | grep 'main'
+[ "$(git rev-parse --abbrev-ref 'main@{u}')" == 'clone/main' ]
 
 # Cleanup
 rm -rf $GIT_PROJECT_ROOT/clone

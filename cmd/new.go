@@ -52,9 +52,9 @@ func newWorktreeBasedOnExistingBranch(branch string) error {
 
 func newWorktreeNewBranchWithBase(newBranch, base string) error {
 	fmt.Printf("Pulling branch %q...\n", base)
-	err := pull(base)
+	err := common.Pull(base)
 	if err != nil {
-		return err
+		fmt.Printf("WARNING failed to pull branch %q: %v\n", base, err)
 	}
 
 	fmt.Printf("creating new branch %q based on %q\n", newBranch, base)
@@ -87,7 +87,7 @@ func newWorktreeBasedOnRemoteBranch(remote, branch string) error {
 	}
 
 	// Fetch the remote branch
-	err = git.Fetch(remote, branch)
+	err = git.Fetch("", remote, branch)
 	if err != nil {
 		return fmt.Errorf("couldn't fetch remote branch %s:%s: %w", remote, branch, err)
 	}

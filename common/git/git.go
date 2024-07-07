@@ -72,8 +72,8 @@ func RemoteExists(dir, remote string) (bool, error) {
 	return false, err
 }
 
-func Fetch(remote, branch string) error {
-	_, err := internalExec("", "fetch", remote, branch)
+func Fetch(dir, remote, branch string) error {
+	_, err := internalExec(dir, "fetch", remote, branch)
 	return err
 }
 
@@ -115,6 +115,17 @@ func Push(opts PushArgs) error {
 
 func SetConfig(dir, key, value string) error {
 	_, err := internalExec(dir, "config", key, value)
+	return err
+}
+
+func Pull(dir string) error {
+	_, err := internalExec(dir, "pull")
+	return err
+}
+
+func SetUpstream(dir, localBranch, remote, remoteBranch string) error {
+	_, err := internalExec(dir, "branch", "-u",
+		fmt.Sprintf("%s/%s", remote, remoteBranch), localBranch)
 	return err
 }
 
