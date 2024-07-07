@@ -35,8 +35,14 @@ func TestGitServer(t *testing.T) {
 		}
 	})
 
+	// Clone repo
 	testutil.RunCommand(t, "", "git", "clone",
 		fmt.Sprintf("http://localhost:8080/%s", repoName),
 		cloneDir,
 	)
+
+	// Add a commit on the clone and try push it to the remote origin
+	testutil.RunCommand(t, cloneDir, "git", "checkout", "-b", "branch1")
+	testutil.AddCommit(t, cloneDir, "bar.txt")
+	testutil.RunCommand(t, cloneDir, "git", "push", "-u", "origin", "branch1")
 }

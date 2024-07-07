@@ -108,8 +108,7 @@ func Push(opts PushArgs) error {
 	if opts.Branch != "" {
 		args = append(args, opts.Branch)
 	}
-	// TODO remove this
-	fmt.Println(args)
+
 	_, err := internalExec("", args...)
 	return err
 }
