@@ -30,6 +30,8 @@ func main() {
 		Env: []string{
 			fmt.Sprintf("GIT_PROJECT_ROOT=%s", reposRoot),
 			"GIT_HTTP_EXPORT_ALL=true",
+			// This allows branches to be pushed to, unless they are checked out.
+			"REMOTE_USER=$REDIRECT_REMOTE_USER",
 		},
 	}
 

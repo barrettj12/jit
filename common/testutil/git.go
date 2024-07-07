@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -23,9 +24,14 @@ func SetupTestRepo(t *testing.T, dir string) (path string) {
 	// Initialise git repo
 	RunCommand(t, repoPath, "git", "init")
 
+	AddCommit(t, repoPath, "foo.txt")
+	return repoPath
+}
+
+// AddCommit commits a file to the current repo.
+func AddCommit(t *testing.T, repoPath, filename string) {
 	// Add file
-	fileName := "foo.txt"
-	file, err := os.Create(filepath.Join(repoPath, fileName))
+	file, err := os.Create(filepath.Join(repoPath, filename))
 	CheckErr(t, err)
 	_, err = file.WriteString("hello world")
 	CheckErr(t, err)
@@ -33,7 +39,7 @@ func SetupTestRepo(t *testing.T, dir string) (path string) {
 	CheckErr(t, err)
 
 	// git add and commit
-	RunCommand(t, repoPath, "git", "add", fileName)
-	RunCommand(t, repoPath, "git", "commit", "-m", `"Initial commit"`)
-	return repoPath
+	RunCommand(t, repoPath, "git", "add", filename)
+	RunCommand(t, repoPath, "git", "commit",
+		"-m", fmt.Sprintf("Add file %q", filename))
 }

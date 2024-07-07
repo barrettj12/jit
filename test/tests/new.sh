@@ -54,3 +54,9 @@ cd 'branch_with_slashes'
 # shellcheck disable=SC2063
 git branch | grep '* branch/with/slashes'
 cd ..
+
+
+# Cleanup
+rm -rf $GIT_PROJECT_ROOT/new
+rm -rf $GIT_PROJECT_ROOT/new2
+rm -rf $JIT_DIR/new

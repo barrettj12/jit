@@ -74,11 +74,12 @@ func Clone(cmd *cobra.Command, args []string) error {
 	cloneDir := filepath.Join(jitDir, user, repo)
 
 	// Clone the repo
+	remote := user
 	err = git.Clone(git.CloneArgs{
 		RepoURL:    repoURL,
 		CloneDir:   filepath.Join(cloneDir, ".git"),
 		Bare:       true,
-		OriginName: user,
+		OriginName: remote,
 	})
 	if err != nil {
 		return fmt.Errorf("error cloning repo: %w", err)
@@ -90,6 +91,15 @@ Successfully cloned repo %s/%s into %v
 Create new branches using
     jit new <branch> [<remote>/]<base>
 `[1:], user, repo, cloneDir)
+
+	// Set up correct fetch config for remote
+	err = git.SetConfig(cloneDir,
+		fmt.Sprintf("remote.%s.fetch", remote),
+		fmt.Sprintf("+refs/heads/*:refs/remotes/%s/*", remote),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to set fetch config for remote %q: %w", user, err)
+	}
 
 	// Fork repo and add as remote
 	forkFlagVal, err := cmd.Flags().GetString("fork")
@@ -127,6 +137,16 @@ Create new branches using
 	err = common.AddWorktree(cloneDir, currentBranch)
 	if err != nil {
 		return fmt.Errorf("failed to create initial worktree: %w", err)
+	}
+
+	// Set upstream for default branch
+	err = git.Fetch(cloneDir, remote, currentBranch)
+	if err != nil {
+		fmt.Printf("WARNING could not fetch remote branch %s/%s: %v\n", remote, currentBranch, err)
+	}
+	err = git.SetUpstream(cloneDir, currentBranch, remote, currentBranch)
+	if err != nil {
+		fmt.Printf("WARNING could not set remote for branch %q: %v\n", currentBranch, err)
 	}
 
 	fmt.Printf("created initial worktree %s\n", currentBranch)

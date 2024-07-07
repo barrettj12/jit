@@ -36,7 +36,6 @@ func Clone(opts CloneArgs) error {
 		args = append(args, opts.CloneDir)
 	}
 
-	fmt.Println(args)
 	_, err := internalExec("", args...)
 	return err
 }
@@ -73,8 +72,60 @@ func RemoteExists(dir, remote string) (bool, error) {
 	return false, err
 }
 
-func Fetch(remote, branch string) error {
-	_, err := internalExec("", "fetch", remote, branch)
+func Fetch(dir, remote, branch string) error {
+	_, err := internalExec(dir, "fetch", remote, branch)
+	return err
+}
+
+// Retrieves the push target for the specified branch. You can use branch = ""
+// for the current branch.
+// A return value of "" means no upstream is set.
+func PushTarget(branch string) (string, error) {
+	out, err := internalExec("", "rev-parse", "--abbrev-ref", fmt.Sprintf("%s@{push}", branch))
+	if err == nil {
+		return strings.TrimSpace(out), nil
+	}
+	if IsNoUpstreamConfiguredErr(err) {
+		return "", nil
+	}
+	return "", err
+}
+
+type PushArgs struct {
+	Remote      string // remote repository to push to
+	Branch      string // branch to push
+	SetUpstream bool   // should the upstream be set on a successful push
+}
+
+func Push(opts PushArgs) error {
+	args := []string{"push"}
+	if opts.SetUpstream {
+		args = append(args, "-u")
+	}
+	if opts.Remote != "" {
+		args = append(args, opts.Remote)
+	}
+	if opts.Branch != "" {
+		args = append(args, opts.Branch)
+	}
+
+	_, err := internalExec("", args...)
+	return err
+}
+
+func SetConfig(dir, key, value string) error {
+	_, err := internalExec(dir, "config", key, value)
+	return err
+}
+
+func Pull(dir string) error {
+	_, err := internalExec(dir, "pull")
+	return err
+}
+
+func SetUpstream(dir, localBranch, remote, remoteBranch string) error {
+	_, err := internalExec(dir, "branch", "-u",
+		fmt.Sprintf("%s/%s", remote, remoteBranch), localBranch)
 	return err
 }
 
