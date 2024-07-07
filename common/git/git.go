@@ -113,6 +113,11 @@ func Push(opts PushArgs) error {
 	return err
 }
 
+func SetConfig(dir, key, value string) error {
+	_, err := internalExec(dir, "config", key, value)
+	return err
+}
+
 // Runs git with the given args, returning stdout and/or any error.
 func internalExec(dir string, args ...string) (string, error) {
 	cmd := exec.Command("git", args...)

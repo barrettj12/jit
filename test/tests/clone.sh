@@ -10,6 +10,8 @@ jit clone clone/repo1 --fork=false
 cd $JIT_DIR/clone/repo1
 # Test remote is named after user
 git remote | grep 'clone'
+# Check remote is correctly configured
+[ "$(git config remote.clone.fetch)" == '+refs/heads/*:refs/remotes/clone/*' ]
 # Test initial worktree 'main' was created
 ls | grep 'main'
 

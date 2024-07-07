@@ -91,6 +91,15 @@ Create new branches using
     jit new <branch> [<remote>/]<base>
 `[1:], user, repo, cloneDir)
 
+	// Set up correct fetch config for remote
+	err = git.SetConfig(cloneDir,
+		fmt.Sprintf("remote.%s.fetch", user),
+		fmt.Sprintf("+refs/heads/*:refs/remotes/%s/*", user),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to set fetch config for remote %q: %w", user, err)
+	}
+
 	// Fork repo and add as remote
 	forkFlagVal, err := cmd.Flags().GetString("fork")
 	if err != nil {
