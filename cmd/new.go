@@ -89,7 +89,7 @@ func newWorktreeBasedOnRemoteBranch(remote, branch string) error {
 		return fmt.Errorf("couldn't get repo base path: %w", err)
 	}
 
-	fmt.Printf(`creating new worktree based on remote branch "%s:%s"\n`, remote, branch)
+	fmt.Printf("creating new worktree based on remote branch %s:%s\n", remote, branch)
 
 	// Add remote if it doesn't exist
 	remoteExists, err := git.RemoteExists(repoBasePath, remote)
@@ -103,7 +103,14 @@ func newWorktreeBasedOnRemoteBranch(remote, branch string) error {
 		}
 	}
 
+	// Fetch the remote branch
+	err = git.Fetch(remote, branch)
+	if err != nil {
+		return fmt.Errorf("couldn't fetch remote branch %s:%s: %w", remote, branch, err)
+	}
+
 	// Create new branch
+	// This step also sets the upstream, since we are basing it on a remote branch.
 	err = git.CreateBranch(branch, fmt.Sprintf("%s/%s", remote, branch))
 	if err != nil {
 		return fmt.Errorf("couldn't create branch %q: %w", branch, err)
@@ -113,7 +120,5 @@ func newWorktreeBasedOnRemoteBranch(remote, branch string) error {
 	if err != nil {
 		return fmt.Errorf("couldn't create worktree for branch %q: %w", branch, err)
 	}
-
-	// TODO: set upstream to existing remote branch
 	return nil
 }

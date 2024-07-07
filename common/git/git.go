@@ -48,7 +48,7 @@ func AddWorktree(dir, name string) error {
 
 // Create a new branch `name` based on `base`.
 func CreateBranch(name, base string) error {
-	_, err := internalExec("branch", name, base)
+	_, err := internalExec("", "branch", name, base)
 	return err
 }
 
@@ -61,6 +61,11 @@ func RemoteExists(dir, remote string) (bool, error) {
 		return false, nil
 	}
 	return false, err
+}
+
+func Fetch(remote, branch string) error {
+	_, err := internalExec("", "fetch", remote, branch)
+	return err
 }
 
 // Runs git with the given args, returning stdout and/or any error.
