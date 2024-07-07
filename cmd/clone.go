@@ -7,13 +7,38 @@ import (
 	"github.com/spf13/cobra"
 	"net/url"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
-var cloneCmd = &cobra.Command{
-	Use:   "clone <user>/<repo>",
-	Short: "Clone a repo from GitHub",
-	RunE:  Clone,
+var cloneDocs = `
+Clone a repo from GitHub. The following formats are all equivalent, and will
+clone the GitHub repository located at https://github.com/<user>/<repo>:
+
+    jit clone <user> <repo>
+    jit clone <user>/<repo>
+    jit clone https://github.com/<user>/<repo>
+
+The clone will be placed in $JIT_DIR/<user>/<repo>. It will be set up as a bare
+repository, with an initial worktree creating tracking the default branch.
+
+Use the --fork flag to specify whether you would like to create a fork of the
+repo (requires 'gh', the GitHub CLI, to be installed). If not specified, you
+will be prompted after cloning.
+`[1:]
+
+func newCloneCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "clone <user>/<repo>",
+		Short: "Clone a repo from GitHub",
+		Long:  cloneDocs,
+		RunE:  Clone,
+	}
+
+	// Set flags
+	cmd.Flags().String("fork", "", "whether to create a fork")
+
+	return cmd
 }
 
 // Clone clones the provided repo, using the workflow described in
@@ -67,11 +92,27 @@ Create new branches using
 `[1:], user, repo, cloneDir)
 
 	// Fork repo and add as remote
-	ok, err := confirm("Create a fork")
+	forkFlagVal, err := cmd.Flags().GetString("fork")
 	if err != nil {
-		return err
+		return fmt.Errorf("internal error: couldn't get value of --fork flag: %w", err)
 	}
-	if ok {
+
+	var shouldFork bool
+	if forkFlagVal == "" {
+		// The user did not specify when typing the command whether we should
+		// fork the repo or not. Ask them.
+		shouldFork, err = confirm("Create a fork")
+		if err != nil {
+			return err
+		}
+	} else {
+		shouldFork, err = strconv.ParseBool(forkFlagVal)
+		if err != nil {
+			return fmt.Errorf("couldn't parse value %q of --fork flag: %w", forkFlagVal, err)
+		}
+	}
+
+	if shouldFork {
 		err = fork(user, repo, cloneDir)
 		if err != nil {
 			return err

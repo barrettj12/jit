@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -44,6 +45,12 @@ func ReqArg(args []string, i int, prompt string) (string, error) {
 
 // Prompt the user to enter a value.
 func Prompt(prompt string) (string, error) {
+	nonInteractive := os.Getenv("JIT_NONINTERACTIVE")
+	parsed, err := strconv.ParseBool(nonInteractive)
+	if err == nil && parsed {
+		panic("internal error: common.Prompt called with JIT_NONINTERACTIVE=1")
+	}
+
 	sc := bufio.NewScanner(os.Stdin)
 	fmt.Printf("%v ", prompt)
 	sc.Scan()

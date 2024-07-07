@@ -9,7 +9,7 @@ import (
 
 func main() {
 	// Set up global flags
-	baseCmd.PersistentFlags().String("R", "", "repo to execute commands in")
+	baseCmd.PersistentFlags().StringP("repo", "R", "", "repo to execute commands in")
 
 	cmd.AddSubcommands(baseCmd)
 
