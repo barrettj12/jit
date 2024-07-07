@@ -46,16 +46,10 @@ func AddWorktree(dir, name string) error {
 	return err
 }
 
-// Set the upstream of localBranch to remote:remoteBranch.
-func SetUpstream(localBranch, remote, remoteBranch string) error {
-	// TODO: implement
-	return nil
-}
-
 // Create a new branch `name` based on `base`.
 func CreateBranch(name, base string) error {
-	// TODO: implement
-	return nil
+	_, err := internalExec("branch", name, base)
+	return err
 }
 
 func RemoteExists(dir, remote string) (bool, error) {

@@ -57,16 +57,8 @@ func newWorktreeBasedOnExistingBranch(branch string) error {
 		return fmt.Errorf("couldn't create worktree for branch %q: %w", branch, err)
 	}
 
-	// Set upstream to track this user's remote
-	remote := common.GitHubUser()
-	if remote == "" {
-		fmt.Printf("WARNING: env var GH_USER not set, cannot set upstream for new worktree %q\n", branch)
-		return nil
-	}
-	err = git.SetUpstream(branch, remote, branch)
-	if err != nil {
-		return fmt.Errorf("couldn't set upstream for branch %q: %w", branch, err)
-	}
+	// We can't set the upstream branch yet, as it doesn't yet exist. We have
+	// to wait until push time to do this.
 	return nil
 }
 
@@ -86,16 +78,8 @@ func newWorktreeNewBranchWithBase(newBranch, base string) error {
 		return fmt.Errorf("couldn't create worktree for branch %q: %w", newBranch, err)
 	}
 
-	// Set upstream to track this user's remote
-	remote := common.GitHubUser()
-	if remote == "" {
-		fmt.Printf("WARNING: env var GH_USER not set, cannot set upstream for new worktree %q\n", newBranch)
-		return nil
-	}
-	err = git.SetUpstream(newBranch, remote, newBranch)
-	if err != nil {
-		return fmt.Errorf("couldn't set upstream for branch %q: %w", newBranch, err)
-	}
+	// We can't set the upstream branch yet, as it doesn't yet exist. We have
+	// to wait until push time to do this.
 	return nil
 }
 
@@ -119,6 +103,17 @@ func newWorktreeBasedOnRemoteBranch(remote, branch string) error {
 		}
 	}
 
-	// TODO: complete this method
+	// Create new branch
+	err = git.CreateBranch(branch, fmt.Sprintf("%s/%s", remote, branch))
+	if err != nil {
+		return fmt.Errorf("couldn't create branch %q: %w", branch, err)
+	}
+
+	err = git.AddWorktree(repoBasePath, branch)
+	if err != nil {
+		return fmt.Errorf("couldn't create worktree for branch %q: %w", branch, err)
+	}
+
+	// TODO: set upstream to existing remote branch
 	return nil
 }

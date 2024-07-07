@@ -124,8 +124,6 @@ Create new branches using
 	if err != nil {
 		return fmt.Errorf("failed to get current branch: %w", err)
 	}
-	// TODO: this should use common code with the new command so that we are
-	//   correctly setting up the upstream branch, etc.
 	err = git.AddWorktree(cloneDir, currentBranch)
 	if err != nil {
 		return fmt.Errorf("failed to create initial worktree: %w", err)
