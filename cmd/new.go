@@ -46,41 +46,24 @@ func New(cmd *cobra.Command, args []string) error {
 }
 
 func newWorktreeBasedOnExistingBranch(branch string) error {
-	repoBasePath, err := common.RepoBasePath()
-	if err != nil {
-		return fmt.Errorf("couldn't get repo base path: %w", err)
-	}
-
 	fmt.Printf("creating new worktree based on existing local branch %q\n", branch)
-	err = git.AddWorktree(repoBasePath, branch)
-	if err != nil {
-		return fmt.Errorf("couldn't create worktree for branch %q: %w", branch, err)
-	}
-
-	// We can't set the upstream branch yet, as it doesn't yet exist. We have
-	// to wait until push time to do this.
-	return nil
+	return common.AddWorktree("", branch)
 }
 
 func newWorktreeNewBranchWithBase(newBranch, base string) error {
+	fmt.Printf("Pulling branch %q...\n", base)
+	err := pull(base)
+	if err != nil {
+		return err
+	}
+
 	fmt.Printf("creating new branch %q based on %q\n", newBranch, base)
-	err := git.CreateBranch(newBranch, base)
+	err = git.CreateBranch(newBranch, base)
 	if err != nil {
 		return fmt.Errorf("couldn't create branch %q: %w", newBranch, err)
 	}
 
-	repoBasePath, err := common.RepoBasePath()
-	if err != nil {
-		return fmt.Errorf("couldn't get repo base path: %w", err)
-	}
-	err = git.AddWorktree(repoBasePath, newBranch)
-	if err != nil {
-		return fmt.Errorf("couldn't create worktree for branch %q: %w", newBranch, err)
-	}
-
-	// We can't set the upstream branch yet, as it doesn't yet exist. We have
-	// to wait until push time to do this.
-	return nil
+	return common.AddWorktree("", newBranch)
 }
 
 func newWorktreeBasedOnRemoteBranch(remote, branch string) error {
@@ -116,9 +99,5 @@ func newWorktreeBasedOnRemoteBranch(remote, branch string) error {
 		return fmt.Errorf("couldn't create branch %q: %w", branch, err)
 	}
 
-	err = git.AddWorktree(repoBasePath, branch)
-	if err != nil {
-		return fmt.Errorf("couldn't create worktree for branch %q: %w", branch, err)
-	}
-	return nil
+	return common.AddWorktree("", branch)
 }
