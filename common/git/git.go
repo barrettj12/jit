@@ -41,9 +41,6 @@ func Clone(opts CloneArgs) error {
 	return err
 }
 
-// git worktree add <path>   - creates or checks out branch base(path)
-// git worktree add <path> <branch>
-
 type AddWorktreeArgs struct {
 	Dir          string // directory to run the command in
 	WorktreePath string // path for the new worktree
