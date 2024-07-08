@@ -11,7 +11,7 @@ func AddSubcommands(baseCmd *cobra.Command) {
 		fetchCmd,
 		forkCmd,
 		logCmd,
-		newCmd,
+		newNewCmd(),
 		publishCmd,
 		pullCmd,
 		pushCmd,

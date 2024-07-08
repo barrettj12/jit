@@ -76,7 +76,7 @@ func (g *gitProvider) ResolveBranch(branch string) (string, bool) {
 	if err != nil {
 		err = g.AddRemote(remote, "")
 		if err != nil {
-			fmt.Printf("WARNING: could not add remote %q: %v", remote, err)
+			fmt.Printf("WARNING: could not add remote %q: %v\n", remote, err)
 			return "", false
 		}
 	}
@@ -84,7 +84,7 @@ func (g *gitProvider) ResolveBranch(branch string) (string, bool) {
 	// Fetch branch if necessary
 	err = g.Fetch(remote, remoteBranch)
 	if err != nil {
-		fmt.Printf("WARNING: could not fetch remote branch %q: %v", branch, err)
+		fmt.Printf("WARNING: could not fetch remote branch %q: %v\n", branch, err)
 		return "", false
 	}
 
