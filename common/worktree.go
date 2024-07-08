@@ -11,7 +11,7 @@ import (
 // already exists and is ready to be checked out. It returns a function which
 // can be called to open the new worktree for editing.
 func AddWorktree(repoBasePath, branch string) (EditFunc, error) {
-	worktreeName := worktreeNameForBranchName(branch)
+	worktreeName := defaultWorktreeNameForBranchName(branch)
 	if worktreeName != branch {
 		fmt.Printf("WARNING branch name %q contains slashes, worktree path will be %q instead\n", branch, worktreeName)
 	}
@@ -34,35 +34,46 @@ func AddWorktree(repoBasePath, branch string) (EditFunc, error) {
 	}
 	fmt.Printf("successfully added worktree %q\n", worktreeName)
 
-	return editWorktree(filepath.Join(repoBasePath, worktreeName)), nil
+	return EditWorktree(filepath.Join(repoBasePath, worktreeName)), nil
 }
 
 func Pull(branch string) error {
-	worktreeName := worktreeNameForBranchName(branch)
-	repoBasePath, err := RepoBasePath()
+	worktreePath, err := LookupWorktreeForBranch(branch)
 	if err != nil {
-		return fmt.Errorf("couldn't get repo base path: %w", err)
+		return fmt.Errorf("getting worktree path: %w", err)
 	}
 
-	err = git.Pull(filepath.Join(repoBasePath, worktreeName))
+	err = git.Pull(worktreePath)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-type EditFunc func() error
-
-func EditBranch(branch string) (EditFunc, error) {
-	worktreeName := worktreeNameForBranchName(branch)
-	repoBasePath, err := RepoBasePath()
+func LookupWorktreeForBranch(branch string) (string, error) {
+	// Get list of worktrees
+	worktrees, err := git.Worktrees()
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get repo base path: %w", err)
+		return "", fmt.Errorf("getting worktrees: %w", err)
 	}
-	return editWorktree(filepath.Join(repoBasePath, worktreeName)), nil
+
+	// Find worktree corresponding to requested branch
+	var worktreePath string
+	for _, worktree := range worktrees {
+		if worktree.Branch == branch {
+			worktreePath = worktree.Path
+			break
+		}
+	}
+	if worktreePath == "" {
+		return "", fmt.Errorf("no worktree found for branch %q", branch)
+	}
+	return worktreePath, nil
 }
 
-func editWorktree(worktreePath string) EditFunc {
+type EditFunc func() error
+
+func EditWorktree(worktreePath string) EditFunc {
 	editor := defaultEditor()
 	return func() error {
 		res := Exec(ExecArgs{
@@ -82,6 +93,6 @@ func defaultEditor() string {
 
 // If a branch name contains slashes, the corresponding worktree path should
 // have them replaced with underscores.
-func worktreeNameForBranchName(branchName string) string {
+func defaultWorktreeNameForBranchName(branchName string) string {
 	return strings.ReplaceAll(branchName, "/", "_")
 }

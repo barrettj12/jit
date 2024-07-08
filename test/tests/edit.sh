@@ -12,7 +12,7 @@ jit edit branch1
 
 # Editing a branch that doesn't exist should cause an error
 OUTPUT=$( ! jit edit nonexistent 2>&1 )
-echo $OUTPUT | grep 'branch "nonexistent" not found'
+echo $OUTPUT | grep 'no worktree found for branch "nonexistent"'
 
 # edit accepts 'remote:branch'
 jit edit user:branch1

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/barrettj12/jit/common"
 	"github.com/spf13/cobra"
+	"strings"
 )
 
 var editCmd = &cobra.Command{
@@ -19,11 +20,18 @@ func Edit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	edit, err := common.EditBranch(branch)
-	if err == nil {
-		err = edit()
+	// Strip remote from branch name
+	if strings.Contains(branch, ":") {
+		split := strings.SplitN(branch, ":", 2)
+		branch = split[1]
 	}
 
+	worktreePath, err := common.LookupWorktreeForBranch(branch)
+	if err != nil {
+		return err
+	}
+
+	err = common.EditWorktree(worktreePath)()
 	if err != nil {
 		return fmt.Errorf("couldn't open branch %q for editing: %w", branch, err)
 	}

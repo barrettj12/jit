@@ -16,8 +16,7 @@ RUN git config --global url.http://localhost:8080/.insteadOf https://github.com/
 
 # Copy over binaries
 # This should be the last step so that Docker can cache previous steps
-COPY _build/jit /usr/local/bin
-COPY _build/gitserver /usr/local/bin
+COPY _build/* /usr/local/bin
 
 ENV JIT_DIR=/home/ubuntu/git
 ENV GIT_PROJECT_ROOT=/home/ubuntu/testrepos
