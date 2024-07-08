@@ -1,10 +1,11 @@
 package main
 
 import (
-	"fmt"
+	"errors"
 	"github.com/barrettj12/jit/cmd"
 	"github.com/spf13/cobra"
 	"os"
+	"os/exec"
 )
 
 func main() {
@@ -15,12 +16,18 @@ func main() {
 
 	err := baseCmd.Execute()
 	if err != nil {
-		fmt.Printf("ERROR %s\n", err)
+		// Try to extract exit code from error
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			os.Exit(exitErr.ExitCode())
+		}
+		// Otherwise, just exit with a code of 1.
 		os.Exit(1)
 	}
 }
 
 // baseCmd represents the base command when called without any subcommands
 var baseCmd = &cobra.Command{
-	Use: "jit",
+	Use:          "jit",
+	SilenceUsage: true,
 }
