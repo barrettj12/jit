@@ -5,6 +5,7 @@ set -e
 
 go build -buildvcs=false -o test/_build/jit .
 go build -buildvcs=false -o test/_build/gitserver ./test/gitserver
+go build -buildvcs=false -o test/_build/goland ./test/goland
 
 IMAGE_NAME='jit-test'
 CONTAINER_NAME='jit-test'

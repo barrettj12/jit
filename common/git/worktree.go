@@ -1,5 +1,9 @@
 package git
 
+import (
+	"strings"
+)
+
 type AddWorktreeArgs struct {
 	Dir          string // directory to run the command in
 	WorktreePath string // path for the new worktree
@@ -16,4 +20,52 @@ func AddWorktree(opts AddWorktreeArgs) error {
 		dir:  opts.Dir,
 	})
 	return err
+}
+
+type WorktreeInfo struct {
+	Path   string
+	HEAD   string
+	Branch string
+}
+
+// Returns information on all worktrees.
+func Worktrees() ([]WorktreeInfo, error) {
+	out, err := internalExec(internalExecArgs{
+		args: []string{"worktree", "list", "--porcelain", "-z"},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse output into worktree info list
+	split := strings.Split(out, "\x00")
+	var worktrees []WorktreeInfo
+	var s, w int
+	for s < len(split)-1 {
+		worktreeLine := split[s]
+		worktreePath, _ := strings.CutPrefix(worktreeLine, "worktree ")
+		worktrees = append(worktrees, WorktreeInfo{
+			Path: worktreePath,
+		})
+		s++
+
+		headLine := split[s]
+		if headLine == "bare" {
+			// No more information here
+		} else {
+			head, _ := strings.CutPrefix(headLine, "HEAD ")
+			worktrees[w].HEAD = head
+			s++
+
+			branchLine := split[s]
+			ref, _ := strings.CutPrefix(branchLine, "branch ")
+			branch, _ := strings.CutPrefix(ref, "refs/heads/")
+			worktrees[w].Branch = branch
+		}
+
+		s += 2
+		w++
+	}
+
+	return worktrees, nil
 }
