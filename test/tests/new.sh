@@ -1,7 +1,7 @@
 # Test `jit new` command
 set -ex
 
-# Set up test repo to be cloned
+# Set up test repo
 setup_test_repo new/repo1
 jit clone new/repo1 --fork=false
 cd $JIT_DIR/new/repo1
@@ -32,8 +32,9 @@ cd ..
 
 
 # Test creating new worktree from existing remote branch
-# Clone the test repo
+# Create a fork of the test repo
 git clone "$GIT_PROJECT_ROOT/new/repo1" "$GIT_PROJECT_ROOT/new2/repo1"
+# Add a new branch branch3 to the fork
 git -C "$GIT_PROJECT_ROOT/new2/repo1" branch branch3 main
 # Don't add the new remote - the new command should automatically do this
 jit new new2:branch3
