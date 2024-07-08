@@ -6,7 +6,9 @@ import (
 )
 
 func CurrentBranch() (string, error) {
-	out, err := internalExec("", "rev-parse", "--abbrev-ref", "HEAD")
+	out, err := internalExec(internalExecArgs{
+		args: []string{"rev-parse", "--abbrev-ref", "HEAD"},
+	})
 	if err != nil {
 		return "", err
 	}
@@ -15,7 +17,9 @@ func CurrentBranch() (string, error) {
 
 // Create a new branch `name` based on `base`.
 func CreateBranch(name, base string) error {
-	_, err := internalExec("", "branch", name, base)
+	_, err := internalExec(internalExecArgs{
+		args: []string{"branch", name, base},
+	})
 	return err
 }
 
@@ -23,7 +27,10 @@ func CreateBranch(name, base string) error {
 // for the current branch.
 // A return value of "" means no upstream is set.
 func PushTarget(branch string) (string, error) {
-	out, err := internalExec("", "rev-parse", "--abbrev-ref", fmt.Sprintf("%s@{push}", branch))
+	out, err := internalExec(internalExecArgs{
+		args: []string{"rev-parse", "--abbrev-ref",
+			fmt.Sprintf("%s@{push}", branch)},
+	})
 	if err == nil {
 		return strings.TrimSpace(out), nil
 	}
@@ -51,17 +58,26 @@ func Push(opts PushArgs) error {
 		args = append(args, opts.Branch)
 	}
 
-	_, err := internalExec("", args...)
+	_, err := internalExec(internalExecArgs{
+		args:         args,
+		attachStderr: true,
+	})
 	return err
 }
 
 func Pull(dir string) error {
-	_, err := internalExec(dir, "pull")
+	_, err := internalExec(internalExecArgs{
+		args: []string{"pull"},
+		dir:  dir,
+	})
 	return err
 }
 
 func SetUpstream(dir, localBranch, remote, remoteBranch string) error {
-	_, err := internalExec(dir, "branch", "-u",
-		fmt.Sprintf("%s/%s", remote, remoteBranch), localBranch)
+	_, err := internalExec(internalExecArgs{
+		args: []string{"branch", "-u",
+			fmt.Sprintf("%s/%s", remote, remoteBranch), localBranch},
+		dir: dir,
+	})
 	return err
 }

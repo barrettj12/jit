@@ -15,7 +15,7 @@ func main() {
 
 	err := baseCmd.Execute()
 	if err != nil {
-		fmt.Printf("ERROR %s", err)
+		fmt.Printf("ERROR %s\n", err)
 		os.Exit(1)
 	}
 }

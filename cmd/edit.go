@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/barrettj12/jit/common"
 	"github.com/spf13/cobra"
 )
@@ -18,23 +19,13 @@ func Edit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// TODO: this needs to use the methods in common/worktree.go
-	path, err := common.WorktreePath(branch)
-	if err != nil {
-		return err
+	edit, err := common.EditBranch(branch)
+	if err == nil {
+		err = edit()
 	}
 
-	editor := defaultEditor()
-
-	res := common.Exec(common.ExecArgs{
-		Cmd:        editor,
-		Args:       []string{path},
-		Background: true,
-	})
-	return res.RunError
-}
-
-func defaultEditor() string {
-	// TODO: allow specifying default editor on a per-repo basis
-	return "goland"
+	if err != nil {
+		return fmt.Errorf("couldn't open branch %q for editing: %w", branch, err)
+	}
+	return nil
 }

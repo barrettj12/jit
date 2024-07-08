@@ -11,6 +11,9 @@ func AddWorktree(opts AddWorktreeArgs) error {
 	if opts.Branch != "" {
 		args = append(args, opts.Branch)
 	}
-	_, err := internalExec(opts.Dir, args...)
+	_, err := internalExec(internalExecArgs{
+		args: args,
+		dir:  opts.Dir,
+	})
 	return err
 }

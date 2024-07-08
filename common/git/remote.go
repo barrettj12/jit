@@ -1,7 +1,10 @@
 package git
 
 func RemoteExists(dir, remote string) (bool, error) {
-	_, err := internalExec(dir, "remote", "get-url", remote)
+	_, err := internalExec(internalExecArgs{
+		args: []string{"remote", "get-url", remote},
+		dir:  dir,
+	})
 	if err == nil {
 		return true, nil
 	}
@@ -12,11 +15,16 @@ func RemoteExists(dir, remote string) (bool, error) {
 }
 
 func Fetch(dir, remote, branch string) error {
-	_, err := internalExec(dir, "fetch", remote, branch)
+	_, err := internalExec(internalExecArgs{
+		args: []string{"fetch", remote, branch},
+		dir:  dir,
+	})
 	return err
 }
 
 func AddRemote(remoteName, url string) error {
-	_, err := internalExec("", "remote", "add", remoteName, url)
+	_, err := internalExec(internalExecArgs{
+		args: []string{"remote", "add", remoteName, url},
+	})
 	return err
 }

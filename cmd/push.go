@@ -36,11 +36,14 @@ Please set the GH_USER env var or set the upstream manually.`)
 		}
 		pushArgs.Branch = currentBranch
 		pushArgs.SetUpstream = true
+		pushTarget = fmt.Sprintf("%s/%s", remote, currentBranch)
 	}
 
+	fmt.Printf("pushing to %q...\n", pushTarget)
 	err = git.Push(pushArgs)
 	if err != nil {
 		return fmt.Errorf("couldn't push: %w", err)
 	}
+	fmt.Printf("successfully pushed current branch to %q\n", pushTarget)
 	return nil
 }

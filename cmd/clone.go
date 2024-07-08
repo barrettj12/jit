@@ -37,6 +37,7 @@ func newCloneCmd() *cobra.Command {
 
 	// Set flags
 	cmd.Flags().String("fork", "", "whether to create a fork")
+	cmd.Flags().Bool("no-edit", false, "don't open new repo for editing")
 
 	return cmd
 }
@@ -134,7 +135,7 @@ Create new branches using
 	if err != nil {
 		return fmt.Errorf("failed to get current branch: %w", err)
 	}
-	err = common.AddWorktree(cloneDir, currentBranch)
+	edit, err := common.AddWorktree(cloneDir, currentBranch)
 	if err != nil {
 		return fmt.Errorf("failed to create initial worktree: %w", err)
 	}
@@ -150,6 +151,20 @@ Create new branches using
 	}
 
 	fmt.Printf("created initial worktree %s\n", currentBranch)
+
+	// Open new branch for editing (maybe)
+	noEdit, err := cmd.Flags().GetBool("no-edit")
+	if err != nil {
+		fmt.Printf("WARNING could not get value of --no-edit flag, opening for editing anyway\n")
+		noEdit = false
+	}
+	if !noEdit {
+		err = edit()
+		if err != nil {
+			fmt.Printf("WARNING could not open branch %q for editing: %v\n", currentBranch, err)
+		}
+	}
+
 	return nil
 }
 
