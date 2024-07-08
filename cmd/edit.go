@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/barrettj12/jit/common"
+	"github.com/barrettj12/jit/common/config"
 	"github.com/barrettj12/jit/common/types"
 	"github.com/spf13/cobra"
 	"strings"
@@ -16,6 +17,14 @@ var editCmd = &cobra.Command{
 
 // Edit opens the given branch in the default editor.
 func Edit(cmd *cobra.Command, args []string) error {
+	editor, err := config.Editor()
+	if err != nil {
+		fmt.Printf("error getting default editor: %v\n", err)
+	} else {
+		fmt.Printf("default editor is %q\n", editor)
+	}
+	return nil
+
 	branch, err := common.ReqArg(args, 0, "Which branch would you like to edit?")
 	if err != nil {
 		return err
