@@ -1,7 +1,0 @@
-#!/bin/bash
-BRANCH=$1
-git-pull $BRANCH
-git rebase -i $BRANCH
-
-#  Waiting for your editor to close the file... 
-#    doesn't work when you close it
