@@ -3,6 +3,8 @@ package git
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"os"
 	"os/exec"
 )
 
@@ -26,29 +28,46 @@ func Clone(opts CloneArgs) error {
 		args = append(args, opts.CloneDir)
 	}
 
-	_, err := internalExec("", args...)
+	_, err := internalExec(internalExecArgs{args: args})
 	return err
 }
 
 func SetConfig(dir, key, value string) error {
-	_, err := internalExec(dir, "config", key, value)
+	_, err := internalExec(internalExecArgs{
+		args: []string{"config", key, value},
+		dir:  dir,
+	})
 	return err
 }
 
 func Apply(path string) error {
-	_, err := internalExec("", "apply", path)
+	_, err := internalExec(internalExecArgs{
+		args: []string{"apply", path},
+	})
 	return err
 }
 
-// Runs git with the given args, returning stdout and/or any error.
-func internalExec(dir string, args ...string) (string, error) {
-	cmd := exec.Command("git", args...)
-	cmd.Dir = dir
+type internalExecArgs struct {
+	args         []string // args to feed to git
+	dir          string   // directory to run the command in
+	attachStderr bool     // if true, attach cmd stderr to os.Stderr
+}
 
+// Runs git with the given args, returning stdout and/or any error.
+func internalExec(opts internalExecArgs) (string, error) {
+	cmd := exec.Command("git", opts.args...)
+	cmd.Dir = opts.dir
+
+	// Handle stdout/stderr
 	stdout := &bytes.Buffer{}
 	cmd.Stdout = stdout
-	stderr := &bytes.Buffer{}
-	cmd.Stderr = stderr
+
+	stderrBuffer := &bytes.Buffer{}
+	if opts.attachStderr {
+		cmd.Stderr = io.MultiWriter(stderrBuffer, os.Stderr)
+	} else {
+		cmd.Stderr = stderrBuffer
+	}
 
 	var runErr error
 	runErr = cmd.Run() // this error contains the exit code
@@ -56,7 +75,7 @@ func internalExec(dir string, args ...string) (string, error) {
 	// handle errors
 	if runErr != nil {
 		// Read stderr for error info
-		errInfo := stderr.String()
+		errInfo := stderrBuffer.String()
 		return "", fmt.Errorf("%s\n%w", errInfo, runErr)
 	}
 
