@@ -30,3 +30,9 @@ func AssertEqual[T comparable](t *testing.T, obtained, expected T) {
 		t.Fatalf("obtained %#v, expected %#v", obtained, expected)
 	}
 }
+
+func AssertNotEqual[T comparable](t *testing.T, obtained, expected T) {
+	if obtained == expected {
+		t.Fatalf("obtained and expected are equal = %#v", expected)
+	}
+}
