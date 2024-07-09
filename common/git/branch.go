@@ -5,9 +5,10 @@ import (
 	"strings"
 )
 
-func CurrentBranch() (string, error) {
+func CurrentBranch(dir string) (string, error) {
 	out, err := internalExec(internalExecArgs{
 		args: []string{"rev-parse", "--abbrev-ref", "HEAD"},
+		dir:  dir,
 	})
 	if err != nil {
 		return "", err
