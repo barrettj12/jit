@@ -1,44 +1,57 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
-	"os"
-
+	"fmt"
 	"github.com/barrettj12/jit/common"
+	"github.com/barrettj12/jit/common/git"
+	"github.com/spf13/cobra"
 )
 
+var pullDocs = `
+Pull a given local branch using:
+
+    jit pull <branch>
+
+Inside a worktree, you can pull the current branch by simply running:
+
+    jit pull
+`[1:]
+
 var pullCmd = &cobra.Command{
-	Use:   "pull <branch> <options>",
+	Use:   "pull <branch>",
 	Short: "Pull a remote branch",
+	Long:  pullDocs,
 	RunE:  Pull,
 }
 
 func Pull(cmd *cobra.Command, args []string) error {
-	branch, err := common.ReqArg(args, 0, "Which branch would you like to pull?")
+	// If a branch was specified, just attempt to pull that branch.
+	if len(args) > 0 {
+		return pullBranch(args[0])
+	}
+
+	// No branch specified. First, let's try to pull the current branch.
+	branch, err := git.CurrentBranch("")
+	if err == nil {
+		return pullBranch(branch)
+	}
+
+	// If there is no current branch (e.g. we are not inside a worktree), ask
+	// the user which branch they'd like to pull.
+	branch, err = common.Prompt("Which branch would you like to pull?")
 	if err != nil {
 		return err
 	}
-
-	var pullArgs []string
-	if len(args) >= 1 {
-		pullArgs = args[1:]
-	}
-
-	return pull(branch, pullArgs...)
+	return pullBranch(branch)
 }
 
-func pull(branch string, pullArgs ...string) error {
-	path, err := common.WorktreePath(branch)
+func pullBranch(branch string) error {
+	fmt.Printf("pulling branch %q...\n", branch)
+	err := common.Pull(branch)
 	if err != nil {
 		return err
 	}
 
-	res := common.Exec(common.ExecArgs{
-		Cmd:    "git",
-		Args:   append([]string{"pull"}, pullArgs...),
-		Dir:    path,
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-	})
-	return res.RunError
+	fmt.Printf("successfully pulled branch %q\n", branch)
+	return nil
 }

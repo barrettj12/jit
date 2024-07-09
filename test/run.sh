@@ -1,7 +1,12 @@
 #!/bin/bash
 # This script runs the E2E tests.
 # It should be invoked from the root directory as test/run.sh.
+#   test/run.sh        runs all tests
+#   test/run.sh foo    runs only test cases matching 'foo'
 set -e
+
+# Optional argument is a string defining which test cases to run.
+RUN_TEST_SPEC=$1
 
 go build -buildvcs=false -o test/_build/jit .
 go build -buildvcs=false -o test/_build/gitserver ./test/gitserver
@@ -17,7 +22,14 @@ trap "docker rm -f $CONTAINER_NAME >/dev/null" EXIT HUP INT TERM
 set +e
 for FILE in test/tests/*; do
   [ -e "$FILE" ] || continue
-  echo "====== Running test '$(basename $FILE)' ... ==================="
+  CURRENT_TEST=$(basename $FILE)
+
+  # If a specific test was requested, check if this matches
+  if [ -n "$RUN_TEST_SPEC" ] && ! echo $CURRENT_TEST | grep $RUN_TEST_SPEC; then
+    continue
+  fi
+
+  echo "====== Running test '$CURRENT_TEST' ... ==================="
 
   # We pipe the test to `docker exec` to run inside the container.
   # First we pipe all the 'includes' files (utility functions), followed by the
@@ -27,9 +39,9 @@ for FILE in test/tests/*; do
 
   echo
   if [ $RETVAL -eq 0 ]; then
-    echo "====== Test '$(basename $FILE)' PASSED ========================"
+    echo "====== Test '$CURRENT_TEST' PASSED ========================"
   else
-    echo "====== Test '$(basename $FILE)' FAILED ========================"
+    echo "====== Test '$CURRENT_TEST' FAILED ========================"
     exit 1
   fi
 done
