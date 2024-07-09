@@ -1,6 +1,7 @@
 package git
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -19,6 +20,9 @@ func AddWorktree(opts AddWorktreeArgs) error {
 		args: args,
 		dir:  opts.Dir,
 	})
+	if IsNoSuchBranchErr(err) {
+		return fmt.Errorf("branch %q doesn't exist", opts.Branch)
+	}
 	return err
 }
 
