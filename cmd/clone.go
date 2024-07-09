@@ -131,7 +131,7 @@ Create new branches using
 	}
 
 	// Create new worktree tracking HEAD of source remote
-	currentBranch, err := git.CurrentBranch()
+	currentBranch, err := git.CurrentBranch(cloneDir)
 	if err != nil {
 		return fmt.Errorf("failed to get current branch: %w", err)
 	}

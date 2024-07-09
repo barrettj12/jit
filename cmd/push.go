@@ -30,7 +30,7 @@ Please set the GH_USER env var or set the upstream manually.`)
 		}
 		pushArgs.Remote = remote
 
-		currentBranch, err := git.CurrentBranch()
+		currentBranch, err := git.CurrentBranch("")
 		if err != nil {
 			return fmt.Errorf("can't get current branch: %w", err)
 		}
