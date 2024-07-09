@@ -68,8 +68,9 @@ func Push(opts PushArgs) error {
 
 func Pull(dir string) error {
 	_, err := internalExec(internalExecArgs{
-		args: []string{"pull"},
-		dir:  dir,
+		args:         []string{"pull"},
+		dir:          dir,
+		attachStderr: true,
 	})
 	return err
 }
