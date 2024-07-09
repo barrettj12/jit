@@ -28,6 +28,12 @@ func Push(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf(`can't determine push destination for current branch.
 Please set the GH_USER env var or set the upstream manually.`)
 		}
+
+		// Add remote if it doesn't already exist
+		err = addRemote(remote, "")
+		if err != nil && !git.IsRemoteAlreadyExistsErr(err) {
+			return fmt.Errorf("couldn't add remote %q: %w", remote, err)
+		}
 		pushArgs.Remote = remote
 
 		currentBranch, err := git.CurrentBranch("")

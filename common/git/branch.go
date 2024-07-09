@@ -41,6 +41,23 @@ func PushTarget(branch string) (string, error) {
 	return "", err
 }
 
+// Retrieves the pull target for the specified branch. You can use branch = ""
+// for the current branch.
+// A return value of "" means no upstream is set.
+func PullTarget(branch string) (string, error) {
+	out, err := internalExec(internalExecArgs{
+		args: []string{"rev-parse", "--abbrev-ref",
+			fmt.Sprintf("%s@{u}", branch)},
+	})
+	if err == nil {
+		return strings.TrimSpace(out), nil
+	}
+	if IsNoUpstreamConfiguredErr(err) {
+		return "", nil
+	}
+	return "", err
+}
+
 type PushArgs struct {
 	Remote      string // remote repository to push to
 	Branch      string // branch to push
