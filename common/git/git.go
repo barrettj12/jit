@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 type CloneArgs struct {
@@ -47,16 +48,48 @@ func Apply(path string) error {
 	return err
 }
 
+type RebaseArgs struct {
+	Base        string // base branch/ref to rebase against
+	Interactive bool
+	Env         []string
+}
+
+func Rebase(opts RebaseArgs) error {
+	args := []string{"rebase"}
+	if opts.Interactive {
+		args = append(args, "-i")
+	}
+	args = append(args, opts.Base)
+
+	_, err := internalExec(internalExecArgs{
+		args: args,
+		env:  opts.Env,
+	})
+	return err
+}
+
+func MergeBase(branch1, branch2 string) (string, error) {
+	out, err := internalExec(internalExecArgs{
+		args: []string{"merge-base", branch1, branch2},
+	})
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(out), nil
+}
+
 type internalExecArgs struct {
 	args         []string // args to feed to git
 	dir          string   // directory to run the command in
 	attachStderr bool     // if true, attach cmd stderr to os.Stderr
+	env          []string // environment variable key=value pairs
 }
 
 // Runs git with the given args, returning stdout and/or any error.
 func internalExec(opts internalExecArgs) (string, error) {
 	cmd := exec.Command("git", opts.args...)
 	cmd.Dir = opts.dir
+	cmd.Env = append(cmd.Environ(), opts.env...)
 
 	// Handle stdout/stderr
 	stdout := &bytes.Buffer{}
