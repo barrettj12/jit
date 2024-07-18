@@ -40,10 +40,20 @@ func AddWorktree(repoBasePath, branch string) (EditFunc, error) {
 func Pull(branch string) error {
 	worktreePath, err := LookupWorktreeForBranch(branch)
 	if err != nil {
-		return fmt.Errorf("getting worktree path: %w", err)
+		return fmt.Errorf("getting worktree path for branch %q: %w", branch, err)
 	}
 
-	err = git.Pull(worktreePath)
+	upstream, err := git.PullTarget(branch)
+	if err != nil {
+		return fmt.Errorf("getting upstream for branch %q: %w", branch, err)
+	}
+	split := strings.SplitN(upstream, "/", 2)
+
+	err = git.Pull(git.PullArgs{
+		Remote: split[0],
+		Branch: split[1],
+		Dir:    worktreePath,
+	})
 	if err != nil {
 		return err
 	}
