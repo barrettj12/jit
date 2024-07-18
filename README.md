@@ -132,6 +132,14 @@ Remove a given branch/worktree and its upstream remote.
 jit rm <branch>
 ```
 
+### `jit squash`
+Squash all commits in the current branch into one. Requires a GitHub PR to be
+open on the branch.
+
+### `jit rebase`
+Rebase the current branch against the latest version of the base branch.
+Requires a GitHub PR to be open on the branch.
+
 <!--
 TODO: restore this section once hooks are implemented
 

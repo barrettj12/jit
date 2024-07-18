@@ -15,7 +15,10 @@ func AddSubcommands(baseCmd *cobra.Command) {
 		publishCmd,
 		pullCmd,
 		pushCmd,
+		rebaseCmd,
 		removeCmd,
+		squashCmd,
+		squashEditorCmd,
 		whatCmd,
 		whereCmd,
 	)
