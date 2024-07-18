@@ -26,6 +26,16 @@ jit pull
 git log main | grep 'three.txt'
 cd ..
 
+# Regression test for https://github.com/barrettj12/jit/issues/41
+# Create remote branch
+add_remote_branch pull/repo1 branch2 main
+# Check branch2 is not in cloned repo
+git branch -r | grep 'pull/branch2' && exit 1
+# Pull main branch
+jit pull main
+# Check branch2 is still not in cloned repo
+git branch -r | grep 'pull/branch2' && exit 1
+
 # Cleanup
 rm -rf $GIT_PROJECT_ROOT/pull
 rm -rf $JIT_DIR/pull

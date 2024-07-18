@@ -83,10 +83,24 @@ func Push(opts PushArgs) error {
 	return err
 }
 
-func Pull(dir string) error {
+type PullArgs struct {
+	Remote string
+	Branch string
+	Dir    string
+}
+
+func Pull(opts PullArgs) error {
+	args := []string{"pull"}
+	if opts.Remote != "" {
+		args = append(args, opts.Remote)
+	}
+	if opts.Branch != "" {
+		args = append(args, opts.Branch)
+	}
+
 	_, err := internalExec(internalExecArgs{
-		args:         []string{"pull"},
-		dir:          dir,
+		args:         args,
+		dir:          opts.Dir,
 		attachStderr: true,
 	})
 	return err
