@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"github.com/barrettj12/jit/common"
 	"github.com/barrettj12/jit/common/git"
+	"github.com/barrettj12/jit/common/path"
+	"github.com/barrettj12/jit/common/types"
+	"github.com/barrettj12/jit/common/url"
 	"github.com/spf13/cobra"
-	"net/url"
-	"path/filepath"
 	"strconv"
-	"strings"
 )
 
 var cloneDocs = `
@@ -45,40 +45,27 @@ func newCloneCmd() *cobra.Command {
 // Clone clones the provided repo, using the workflow described in
 // https://morgan.cugerone.com/blog/how-to-use-git-worktree-and-in-a-clean-way/
 func Clone(cmd *cobra.Command, args []string) error {
-	var user, repo string
-
-	arg1, err := common.ReqArg(args, 0, "URL of Git repo to clone:")
-	if err != nil {
-		return err
+	githubRepo := url.GitHubURL(args...)
+	user := githubRepo.Owner()
+	if user == "" {
+		return fmt.Errorf("must specify a user to clone repo from")
 	}
-	user, repo, err = parseGitRepoURL(arg1)
-	if err != nil {
-		return err
-	}
-
+	repo := githubRepo.RepoName()
 	if repo == "" {
-		// arg1 was just "user"
-		repo, err = common.ReqArg(args, 1, fmt.Sprintf("Which of %s's repos do you want?", user))
-		if err != nil {
-			return err
-		}
+		return fmt.Errorf("must specify a repo to clone")
 	}
-
-	// Reconstruct repository URL
-	repoURL := githubURL(user, repo)
 
 	// Use JIT_DIR to find clone path
-	jitDir, err := common.JitDir()
+	cloneDir, err := common.DefaultRepoBasePath(user, repo)
 	if err != nil {
-		return err
+		return fmt.Errorf("getting clone path: %w", err)
 	}
-	cloneDir := filepath.Join(jitDir, user, repo)
 
 	// Clone the repo
-	remote := user
+	remote := types.RemoteName(user)
 	err = git.Clone(git.CloneArgs{
-		RepoURL:    repoURL,
-		CloneDir:   filepath.Join(cloneDir, ".git"),
+		Repo:       githubRepo,
+		CloneDir:   path.GitFolderPath(cloneDir),
 		Bare:       true,
 		OriginName: remote,
 	})
@@ -124,7 +111,7 @@ Create new branches using
 	}
 
 	if shouldFork {
-		err = fork(user, repo, cloneDir)
+		err = fork(cloneDir, user, repo)
 		if err != nil {
 			return err
 		}
@@ -141,11 +128,20 @@ Create new branches using
 	}
 
 	// Set upstream for default branch
-	err = git.Fetch(cloneDir, remote, currentBranch)
+	remoteBranchName := string(currentBranch)
+	remoteBranch := types.RemoteBranch{
+		Remote: remote,
+		Branch: remoteBranchName,
+	}
+	err = git.Fetch(cloneDir, remoteBranch)
 	if err != nil {
 		fmt.Printf("WARNING could not fetch remote branch %s/%s: %v\n", remote, currentBranch, err)
 	}
-	err = git.SetUpstream(cloneDir, currentBranch, remote, currentBranch)
+	err = git.SetUpstream(git.SetUpstreamArgs{
+		LocalBranch:  currentBranch,
+		RemoteBranch: remoteBranch,
+		Dir:          cloneDir,
+	})
 	if err != nil {
 		fmt.Printf("WARNING could not set remote for branch %q: %v\n", currentBranch, err)
 	}
@@ -166,43 +162,4 @@ Create new branches using
 	}
 
 	return nil
-}
-
-// Parses the given argument to a GitHub user & repo.
-// Valid inputs are
-//
-//	"user"                         -> "user", "",     nil
-//	"user/repo"                    -> "user", "repo", nil
-//	"https://github.com/user/repo" -> "user", "repo", nil
-func parseGitRepoURL(raw string) (string, string, error) {
-	u, err := url.Parse(raw) // only matches full URL with scheme
-	if err != nil {
-		return "", "", err
-	}
-
-	switch u.Host {
-	case "":
-	// raw is not a URL
-	case "github.com":
-		raw = u.Path[1:] // strip leading '/'
-	default:
-		return "", "", fmt.Errorf("host %s not supported", u.Host)
-	}
-
-	// raw is now "user" or "user/repo"
-	parts := strings.Split(raw, "/")
-	switch len(parts) {
-	case 1:
-		// "user"
-		return parts[0], "", nil
-	case 2:
-		// "user/repo"
-		return parts[0], parts[1], nil
-	default:
-		return "", "", fmt.Errorf("invalid Git repo URL %s", raw)
-	}
-}
-
-func githubURL(user, repo string) string {
-	return fmt.Sprintf("https://github.com/%s/%s", user, repo)
 }

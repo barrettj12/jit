@@ -1,8 +1,14 @@
 package git
 
-func RemoteExists(dir, remote string) (bool, error) {
+import (
+	"github.com/barrettj12/jit/common/path"
+	"github.com/barrettj12/jit/common/types"
+	"github.com/barrettj12/jit/common/url"
+)
+
+func RemoteExists(dir path.Dir, remote types.RemoteName) (bool, error) {
 	_, err := internalExec(internalExecArgs{
-		args: []string{"remote", "get-url", remote},
+		args: []string{"remote", "get-url", string(remote)},
 		dir:  dir,
 	})
 	if err == nil {
@@ -14,17 +20,17 @@ func RemoteExists(dir, remote string) (bool, error) {
 	return false, err
 }
 
-func Fetch(dir, remote, branch string) error {
+func Fetch(dir path.Dir, branch types.RemoteBranch) error {
 	_, err := internalExec(internalExecArgs{
-		args: []string{"fetch", remote, branch},
+		args: []string{"fetch", string(branch.Remote), branch.Branch},
 		dir:  dir,
 	})
 	return err
 }
 
-func AddRemote(remoteName, url string) error {
+func AddRemote(name types.RemoteName, url url.RemoteRepo) error {
 	_, err := internalExec(internalExecArgs{
-		args: []string{"remote", "add", remoteName, url},
+		args: []string{"remote", "add", string(name), url.URL()},
 	})
 	return err
 }

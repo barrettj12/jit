@@ -5,6 +5,7 @@ import (
 	"github.com/barrettj12/jit/common"
 	"github.com/barrettj12/jit/common/gh"
 	"github.com/barrettj12/jit/common/git"
+	"github.com/barrettj12/jit/common/types"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +22,8 @@ func Rebase(cmd *cobra.Command, args []string) error {
 	}
 
 	// Pull base branch
-	base := prInfo.BaseBranch
+	// TODO: properly convert GitHubBranch => RemoteBranch => LocalBranch
+	base := types.LocalBranch(prInfo.BaseBranch)
 	fmt.Printf("Pulling branch %q...\n", base)
 	err = common.Pull(base)
 	if err != nil {

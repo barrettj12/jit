@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/barrettj12/jit/common"
+	"github.com/barrettj12/jit/common/path"
+	"github.com/barrettj12/jit/common/types"
+	"github.com/barrettj12/jit/common/url"
 	"github.com/spf13/cobra"
 	"os"
-	"strings"
-
-	"github.com/barrettj12/jit/common"
 )
 
 var forkCmd = &cobra.Command{
@@ -20,13 +21,11 @@ func Fork(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	split := strings.Split(basePath, "/")
-	user := split[len(split)-2]
-	repo := split[len(split)-1]
-	return fork(user, repo, "")
+	return fork(path.CurrentDir, basePath.Owner(), basePath.RepoName())
 }
 
-func fork(user, repo, dir string) error {
+// TODO: move to common
+func fork(dir path.Dir, user, repo string) error {
 	// Create fork
 	res := common.Exec(common.ExecArgs{
 		Cmd:    "gh",
@@ -41,5 +40,6 @@ stderr: %s`, res.RunError, res.Stderr)
 
 	// Add as remote
 	ghUser := common.GitHubUser()
-	return addRemote(ghUser, "")
+	remoteName := types.RemoteName(ghUser)
+	return addRemote(remoteName, url.Nil)
 }

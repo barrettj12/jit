@@ -2,6 +2,7 @@ package common
 
 import (
 	"bytes"
+	"github.com/barrettj12/jit/common/path"
 	"io"
 	"os"
 	"os/exec"
@@ -11,7 +12,7 @@ import (
 type ExecArgs struct {
 	Cmd  string
 	Args []string
-	Dir  string
+	Dir  path.Dir
 
 	Stdout, Stderr io.Writer
 
@@ -27,7 +28,7 @@ type ExecResult struct {
 // TODO: have a way to globally change the default dir
 func Exec(args ExecArgs) ExecResult {
 	cmd := exec.Command(args.Cmd, args.Args...)
-	cmd.Dir = args.Dir
+	cmd.Dir = path.Path(args.Dir)
 
 	// Set up stdin/out/err
 	cmd.Stdin = os.Stdin

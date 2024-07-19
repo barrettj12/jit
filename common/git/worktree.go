@@ -2,19 +2,21 @@ package git
 
 import (
 	"fmt"
+	"github.com/barrettj12/jit/common/path"
+	"github.com/barrettj12/jit/common/types"
 	"strings"
 )
 
 type AddWorktreeArgs struct {
-	Dir          string // directory to run the command in
-	WorktreePath string // path for the new worktree
-	Branch       string // branch to check out in the new worktree (optional)
+	Dir          path.Dir          // directory to run the command in
+	WorktreePath path.Worktree     // path for the new worktree
+	Branch       types.LocalBranch // branch to check out in the new worktree (optional)
 }
 
 func AddWorktree(opts AddWorktreeArgs) error {
-	args := []string{"worktree", "add", opts.WorktreePath}
+	args := []string{"worktree", "add", opts.WorktreePath.Path()}
 	if opts.Branch != "" {
-		args = append(args, opts.Branch)
+		args = append(args, string(opts.Branch))
 	}
 	_, err := internalExec(internalExecArgs{
 		args: args,
@@ -27,9 +29,9 @@ func AddWorktree(opts AddWorktreeArgs) error {
 }
 
 type WorktreeInfo struct {
-	Path   string
-	HEAD   string
-	Branch string
+	Path   path.Worktree
+	HEAD   types.LocalBranch
+	Branch types.LocalBranch
 }
 
 // Returns information on all worktrees.
@@ -49,7 +51,7 @@ func Worktrees() ([]WorktreeInfo, error) {
 		worktreeLine := split[s]
 		worktreePath, _ := strings.CutPrefix(worktreeLine, "worktree ")
 		worktrees = append(worktrees, WorktreeInfo{
-			Path: worktreePath,
+			Path: path.Worktree(worktreePath),
 		})
 		s++
 
@@ -58,13 +60,13 @@ func Worktrees() ([]WorktreeInfo, error) {
 			// No more information here
 		} else {
 			head, _ := strings.CutPrefix(headLine, "HEAD ")
-			worktrees[w].HEAD = head
+			worktrees[w].HEAD = types.LocalBranch(head)
 			s++
 
 			branchLine := split[s]
 			ref, _ := strings.CutPrefix(branchLine, "branch ")
 			branch, _ := strings.CutPrefix(ref, "refs/heads/")
-			worktrees[w].Branch = branch
+			worktrees[w].Branch = types.LocalBranch(branch)
 		}
 
 		s += 2

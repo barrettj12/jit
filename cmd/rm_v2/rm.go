@@ -2,6 +2,7 @@ package rm_v2
 
 import (
 	"fmt"
+	"github.com/barrettj12/jit/common/path"
 	"strings"
 
 	"github.com/barrettj12/jit/common"
@@ -28,7 +29,7 @@ func RemoveV2(args []string) error {
 // (it only considers local branches and doesn't try to fetch).
 func resolveBranch(branch string) (string, error) {
 	// Try to resolve as a local branch
-	_, err := common.ExecGit("", "rev-parse", branch)
+	_, err := common.ExecGit(path.CurrentDir, "rev-parse", branch)
 	if err == nil {
 		return branch, nil
 	}
@@ -44,7 +45,7 @@ func resolveBranch(branch string) (string, error) {
 	}
 
 	remoteBranch := split[1]
-	_, err = common.ExecGit("", "rev-parse", remoteBranch)
+	_, err = common.ExecGit(path.CurrentDir, "rev-parse", remoteBranch)
 	if err == nil {
 		return remoteBranch, nil
 	}

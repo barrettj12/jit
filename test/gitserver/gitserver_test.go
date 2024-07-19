@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/barrettj12/jit/common/testutil"
 	"os"
-	"path/filepath"
 	"testing"
 )
 
@@ -20,7 +19,7 @@ func TestGitServer(t *testing.T) {
 	})
 
 	repoPath := testutil.SetupTestRepo(t, reposRoot)
-	repoName := filepath.Base(repoPath)
+	repoName := repoPath.RepoName()
 
 	err = os.Setenv("GIT_PROJECT_ROOT", reposRoot)
 	testutil.CheckErr(t, err)

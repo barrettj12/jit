@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/barrettj12/jit/common/git"
+	"github.com/barrettj12/jit/common/types"
 	"github.com/spf13/cobra"
 )
 
@@ -32,12 +33,12 @@ func Where(cmd *cobra.Command, args []string) error {
 	}
 	action := args[0]
 
-	var branch string
+	var branch types.LocalBranch
 	if len(args) > 1 {
-		branch = args[1]
+		branch = types.LocalBranch(args[1])
 	} // No arg = current branch should be handled by Git methods
 
-	var target string
+	var target types.RemoteBranch
 	var err error
 	switch action {
 	case "push":
@@ -51,7 +52,7 @@ func Where(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("getting %s target: %w", action, err)
 	}
 
-	if target == "" {
+	if target == types.NoRemote {
 		fmt.Printf("no %s target configured for ", action)
 		if branch == "" {
 			fmt.Println("current branch")

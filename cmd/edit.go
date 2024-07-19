@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/barrettj12/jit/common"
+	"github.com/barrettj12/jit/common/types"
 	"github.com/spf13/cobra"
 	"strings"
 )
@@ -20,13 +21,16 @@ func Edit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// TODO: handle the different cases for branch
+	//   types.LocalBranch, types.GitHubBranch, (types.RemoteBranch?)
+
 	// Strip remote from branch name
 	if strings.Contains(branch, ":") {
 		split := strings.SplitN(branch, ":", 2)
 		branch = split[1]
 	}
 
-	worktreePath, err := common.LookupWorktreeForBranch(branch)
+	worktreePath, err := common.LookupWorktreeForBranch(types.LocalBranch(branch))
 	if err != nil {
 		return err
 	}

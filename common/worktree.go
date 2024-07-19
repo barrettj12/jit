@@ -3,16 +3,17 @@ package common
 import (
 	"fmt"
 	"github.com/barrettj12/jit/common/git"
-	"path/filepath"
+	"github.com/barrettj12/jit/common/path"
+	"github.com/barrettj12/jit/common/types"
 	"strings"
 )
 
 // AddWorktree adds a worktree for the given branch. It assumes the branch
 // already exists and is ready to be checked out. It returns a function which
 // can be called to open the new worktree for editing.
-func AddWorktree(repoBasePath, branch string) (EditFunc, error) {
+func AddWorktree(repoBasePath path.Repo, branch types.LocalBranch) (EditFunc, error) {
 	worktreeName := defaultWorktreeNameForBranchName(branch)
-	if worktreeName != branch {
+	if worktreeName != string(branch) {
 		fmt.Printf("WARNING branch name %q contains slashes, worktree path will be %q instead\n", branch, worktreeName)
 	}
 
@@ -24,9 +25,10 @@ func AddWorktree(repoBasePath, branch string) (EditFunc, error) {
 		}
 	}
 
+	worktreePath := path.WorktreePath(repoBasePath, worktreeName)
 	err := git.AddWorktree(git.AddWorktreeArgs{
 		Dir:          repoBasePath,
-		WorktreePath: worktreeName,
+		WorktreePath: worktreePath,
 		Branch:       branch,
 	})
 	if err != nil {
@@ -34,10 +36,10 @@ func AddWorktree(repoBasePath, branch string) (EditFunc, error) {
 	}
 	fmt.Printf("successfully added worktree %q\n", worktreeName)
 
-	return EditWorktree(filepath.Join(repoBasePath, worktreeName)), nil
+	return EditWorktree(worktreePath), nil
 }
 
-func Pull(branch string) error {
+func Pull(branch types.LocalBranch) error {
 	worktreePath, err := LookupWorktreeForBranch(branch)
 	if err != nil {
 		return fmt.Errorf("getting worktree path for branch %q: %w", branch, err)
@@ -47,12 +49,11 @@ func Pull(branch string) error {
 	if err != nil {
 		return fmt.Errorf("getting upstream for branch %q: %w", branch, err)
 	}
-	split := strings.SplitN(upstream, "/", 2)
 
 	err = git.Pull(git.PullArgs{
-		Remote: split[0],
-		Branch: split[1],
-		Dir:    worktreePath,
+		LocalBranch:  branch,
+		RemoteBranch: upstream,
+		Dir:          worktreePath,
 	})
 	if err != nil {
 		return err
@@ -60,7 +61,7 @@ func Pull(branch string) error {
 	return nil
 }
 
-func LookupWorktreeForBranch(branch string) (string, error) {
+func LookupWorktreeForBranch(branch types.LocalBranch) (path.Worktree, error) {
 	// Get list of worktrees
 	worktrees, err := git.Worktrees()
 	if err != nil {
@@ -68,7 +69,7 @@ func LookupWorktreeForBranch(branch string) (string, error) {
 	}
 
 	// Find worktree corresponding to requested branch
-	var worktreePath string
+	var worktreePath path.Worktree
 	for _, worktree := range worktrees {
 		if worktree.Branch == branch {
 			worktreePath = worktree.Path
@@ -83,12 +84,12 @@ func LookupWorktreeForBranch(branch string) (string, error) {
 
 type EditFunc func() error
 
-func EditWorktree(worktreePath string) EditFunc {
+func EditWorktree(path path.Worktree) EditFunc {
 	editor := defaultEditor()
 	return func() error {
 		res := Exec(ExecArgs{
 			Cmd:        editor,
-			Args:       []string{worktreePath},
+			Args:       []string{path.Path()},
 			Background: true,
 		})
 		return res.RunError
@@ -103,6 +104,6 @@ func defaultEditor() string {
 
 // If a branch name contains slashes, the corresponding worktree path should
 // have them replaced with underscores.
-func defaultWorktreeNameForBranchName(branchName string) string {
-	return strings.ReplaceAll(branchName, "/", "_")
+func defaultWorktreeNameForBranchName(branchName types.LocalBranch) string {
+	return strings.ReplaceAll(string(branchName), "/", "_")
 }

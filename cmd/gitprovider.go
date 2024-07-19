@@ -2,6 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/barrettj12/jit/common/path"
+	"github.com/barrettj12/jit/common/types"
+	"github.com/barrettj12/jit/common/url"
 	"strings"
 
 	"github.com/barrettj12/jit/common"
@@ -47,13 +50,13 @@ func newGitProvider() GitProvider {
 type gitProvider struct{}
 
 func (g *gitProvider) AddBranch(branch, base string) error {
-	_, err := common.ExecGit("", "branch", branch, base)
+	_, err := common.ExecGit(path.CurrentDir, "branch", branch, base)
 	return err
 }
 
 func (g *gitProvider) ResolveBranch(branch string) (string, bool) {
 	// Try to resolve as a local branch
-	_, err := common.ExecGit("", "rev-parse", branch)
+	_, err := common.ExecGit(path.CurrentDir, "rev-parse", branch)
 	if err == nil {
 		return branch, true
 	}
@@ -100,16 +103,16 @@ func (g *gitProvider) AddWorktree(branch string) error {
 
 }
 
-func (g *gitProvider) AddRemote(remoteName, url string) error {
+func (g *gitProvider) AddRemote(remoteName, remoteURL string) error {
 	// TODO: fix up the dependency here
-	return addRemote(remoteName, url)
+	return addRemote(types.RemoteName(remoteName), url.Raw(remoteURL))
 }
 
 func (g *gitProvider) GetRemote(remoteName string) (url string, err error) {
-	return common.ExecGit("", "remote", "get-url", remoteName)
+	return common.ExecGit(path.CurrentDir, "remote", "get-url", remoteName)
 }
 
 func (g *gitProvider) Fetch(remote, branch string) error {
-	_, err := common.ExecGit("", "fetch", remote, branch)
+	_, err := common.ExecGit(path.CurrentDir, "fetch", remote, branch)
 	return err
 }

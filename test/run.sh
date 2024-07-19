@@ -20,13 +20,14 @@ docker run -dit --name $CONTAINER_NAME $IMAGE_NAME
 # shellcheck disable=SC2064
 trap "docker rm -f $CONTAINER_NAME >/dev/null" EXIT HUP INT TERM
 
+RESULTS=''
 set +e
 for FILE in test/tests/*; do
   [ -e "$FILE" ] || continue
   CURRENT_TEST=$(basename $FILE)
 
   # If a specific test was requested, check if this matches
-  if [ -n "$RUN_TEST_SPEC" ] && ! echo $CURRENT_TEST | grep $RUN_TEST_SPEC; then
+  if [ -n "$RUN_TEST_SPEC" ] && ! echo "$CURRENT_TEST" | grep "$RUN_TEST_SPEC"; then
     continue
   fi
 
@@ -41,8 +42,13 @@ for FILE in test/tests/*; do
   echo
   if [ $RETVAL -eq 0 ]; then
     echo "====== Test '$CURRENT_TEST' PASSED ========================"
+    RESULTS="${RESULTS} - '$CURRENT_TEST':\tPASSED\n"
   else
     echo "====== Test '$CURRENT_TEST' FAILED ========================"
-    exit 1
+    RESULTS="${RESULTS} - '$CURRENT_TEST':\tFAILED\n"
   fi
 done
+
+echo
+echo 'Test results:'
+echo -e "$RESULTS"
