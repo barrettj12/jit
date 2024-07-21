@@ -21,6 +21,7 @@ docker run -dit --name $CONTAINER_NAME $IMAGE_NAME
 trap "docker rm -f $CONTAINER_NAME >/dev/null" EXIT HUP INT TERM
 
 RESULTS=''
+FAIL=0
 set +e
 for FILE in test/tests/*; do
   [ -e "$FILE" ] || continue
@@ -46,9 +47,14 @@ for FILE in test/tests/*; do
   else
     echo "====== Test '$CURRENT_TEST' FAILED ========================"
     RESULTS="${RESULTS} - '$CURRENT_TEST':\tFAILED\n"
+    FAIL=1
   fi
 done
 
 echo
 echo 'Test results:'
 echo -e "$RESULTS"
+
+if [[ $FAIL == 1 ]]; then
+  exit 1
+fi

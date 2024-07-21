@@ -24,3 +24,11 @@ func IsNoUpstreamConfiguredErr(err error) bool {
 func IsNoSuchBranchErr(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "invalid reference:")
 }
+
+func IsAmbiguousArgErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	match, _ := regexp.MatchString("ambiguous argument .*: unknown revision or path not in the working tree.", err.Error())
+	return match
+}

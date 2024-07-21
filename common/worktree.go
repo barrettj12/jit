@@ -45,9 +45,18 @@ func Pull(branch types.LocalBranch) error {
 		return fmt.Errorf("getting worktree path for branch %q: %w", branch, err)
 	}
 
+	unknownRemote := false
 	upstream, err := git.PullTarget(branch)
+	if git.IsAmbiguousArgErr(err) {
+		// Remote tracking branch doesn't exist. We'll try to pull anyway with
+		// no args, but if this fails, we should tell the user to fetch the
+		// remote-tracking branch.
+		unknownRemote = true
+	}
 	if err != nil {
-		return fmt.Errorf("getting upstream for branch %q: %w", branch, err)
+		fmt.Printf("WARNING: unable to get upstream for branch %q\n", branch)
+		// Try to do a 'pull' anyway with no args
+		upstream = types.NoRemote
 	}
 
 	err = git.Pull(git.PullArgs{
@@ -55,10 +64,13 @@ func Pull(branch types.LocalBranch) error {
 		RemoteBranch: upstream,
 		Dir:          worktreePath,
 	})
-	if err != nil {
-		return err
+	if err != nil && unknownRemote {
+		return fmt.Errorf(`
+unknown remote for branch %q. Please run
+    jit fetch <remote> %s
+to fetch the remote-tracking branch.`[1:], branch, branch)
 	}
-	return nil
+	return err
 }
 
 func LookupWorktreeForBranch(branch types.LocalBranch) (path.Worktree, error) {
