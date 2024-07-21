@@ -89,7 +89,7 @@ type internalExecArgs struct {
 }
 
 // Runs git with the given args, returning stdout and/or any error.
-func internalExec(opts internalExecArgs) (string, error) {
+var internalExec = func(opts internalExecArgs) (string, error) {
 	cmd := exec.Command("git", opts.args...)
 	cmd.Dir = path.Path(opts.dir)
 	cmd.Env = append(cmd.Environ(), opts.env...)

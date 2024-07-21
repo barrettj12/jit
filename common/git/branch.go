@@ -95,9 +95,10 @@ func Pull(opts PullArgs) error {
 	args := []string{"pull"}
 	if opts.RemoteBranch.Remote != "" {
 		args = append(args, string(opts.RemoteBranch.Remote))
+
+		refspec := fmt.Sprintf("%s:%s", opts.RemoteBranch.Branch, opts.LocalBranch)
+		args = append(args, refspec)
 	}
-	refspec := fmt.Sprintf("%s:%s", opts.RemoteBranch.Branch, opts.LocalBranch)
-	args = append(args, refspec)
 
 	_, err := internalExec(internalExecArgs{
 		args:         args,
