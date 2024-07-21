@@ -3,6 +3,9 @@ package git
 import (
 	"bytes"
 	"fmt"
+	"github.com/barrettj12/jit/common/path"
+	"github.com/barrettj12/jit/common/types"
+	"github.com/barrettj12/jit/common/url"
 	"io"
 	"os"
 	"os/exec"
@@ -10,10 +13,10 @@ import (
 )
 
 type CloneArgs struct {
-	RepoURL    string // URL of repo to clone
-	CloneDir   string // directory to clone the repo into
-	Bare       bool   // whether to make a bare clone
-	OriginName string // the name to give to the origin remote
+	Repo       url.RemoteRepo   // repo to clone
+	CloneDir   path.Dir         // directory to clone the repo into
+	Bare       bool             // whether to make a bare clone
+	OriginName types.RemoteName // the name to give to the origin remote
 }
 
 func Clone(opts CloneArgs) error {
@@ -22,18 +25,18 @@ func Clone(opts CloneArgs) error {
 		args = append(args, "--bare")
 	}
 	if opts.OriginName != "" {
-		args = append(args, "--origin", opts.OriginName)
+		args = append(args, "--origin", string(opts.OriginName))
 	}
-	args = append(args, opts.RepoURL)
-	if opts.CloneDir != "" {
-		args = append(args, opts.CloneDir)
+	args = append(args, opts.Repo.URL())
+	if out := path.Path(opts.CloneDir); out != "" {
+		args = append(args, out)
 	}
 
 	_, err := internalExec(internalExecArgs{args: args})
 	return err
 }
 
-func SetConfig(dir, key, value string) error {
+func SetConfig(dir path.Dir, key, value string) error {
 	_, err := internalExec(internalExecArgs{
 		args: []string{"config", key, value},
 		dir:  dir,
@@ -49,7 +52,7 @@ func Apply(path string) error {
 }
 
 type RebaseArgs struct {
-	Base        string // base branch/ref to rebase against
+	Base        types.LocalBranch // base branch/ref to rebase against
 	Interactive bool
 	Env         []string
 }
@@ -59,7 +62,7 @@ func Rebase(opts RebaseArgs) error {
 	if opts.Interactive {
 		args = append(args, "-i")
 	}
-	args = append(args, opts.Base)
+	args = append(args, string(opts.Base))
 
 	_, err := internalExec(internalExecArgs{
 		args: args,
@@ -68,19 +71,19 @@ func Rebase(opts RebaseArgs) error {
 	return err
 }
 
-func MergeBase(branch1, branch2 string) (string, error) {
+func MergeBase(branch1, branch2 types.LocalBranch) (types.LocalBranch, error) {
 	out, err := internalExec(internalExecArgs{
-		args: []string{"merge-base", branch1, branch2},
+		args: []string{"merge-base", string(branch1), string(branch2)},
 	})
 	if err != nil {
 		return "", err
 	}
-	return strings.TrimSpace(out), nil
+	return types.LocalBranch(strings.TrimSpace(out)), nil
 }
 
 type internalExecArgs struct {
 	args         []string // args to feed to git
-	dir          string   // directory to run the command in
+	dir          path.Dir // directory to run the command in
 	attachStderr bool     // if true, attach cmd stderr to os.Stderr
 	env          []string // environment variable key=value pairs
 }
@@ -88,7 +91,7 @@ type internalExecArgs struct {
 // Runs git with the given args, returning stdout and/or any error.
 func internalExec(opts internalExecArgs) (string, error) {
 	cmd := exec.Command("git", opts.args...)
-	cmd.Dir = opts.dir
+	cmd.Dir = path.Path(opts.dir)
 	cmd.Env = append(cmd.Environ(), opts.env...)
 
 	// Handle stdout/stderr
@@ -100,6 +103,10 @@ func internalExec(opts internalExecArgs) (string, error) {
 		cmd.Stderr = io.MultiWriter(stderrBuffer, os.Stderr)
 	} else {
 		cmd.Stderr = stderrBuffer
+	}
+
+	if os.Getenv("JIT_DEBUG") != "" {
+		fmt.Println(cmd.String())
 	}
 
 	var runErr error

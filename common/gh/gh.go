@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/barrettj12/jit/common/types"
 	"os/exec"
 )
 
@@ -13,8 +14,8 @@ type PRInfo struct {
 }
 
 // GetPRInfo returns information about a pull request based on the given branch.
-func GetPRInfo(branch string) (PRInfo, error) {
-	cmd := exec.Command("gh", "pr", "view", branch, "--json", "baseRefName")
+func GetPRInfo(branch types.LocalBranch) (PRInfo, error) {
+	cmd := exec.Command("gh", "pr", "view", string(branch), "--json", "baseRefName")
 	stdout := &bytes.Buffer{}
 	stderr := &bytes.Buffer{}
 	cmd.Stdout = stdout

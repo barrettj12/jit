@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/barrettj12/jit/common/path"
 	"github.com/spf13/cobra"
 	"os"
 	"strconv"
@@ -93,7 +94,7 @@ func Remove(cmd *cobra.Command, args []string) error {
 				//   fatal: <path> is not a working tree
 				// in which case we need to just skip to the branch removal step
 
-				untrackedFiles, _ := common.ExecGit(wktreePath, "status", "--porcelain", "--ignore-submodules=none")
+				untrackedFiles, _ := common.ExecGit(path.Worktree(wktreePath), "status", "--porcelain", "--ignore-submodules=none")
 				fmt.Println(untrackedFiles)
 
 				force, err := confirm("Worktree deletion failed, try again with --force")

@@ -3,6 +3,8 @@ package common
 import (
 	"bufio"
 	"fmt"
+	"github.com/barrettj12/jit/common/path"
+	"github.com/barrettj12/jit/common/types"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -24,12 +26,21 @@ func Git(cmd string, args ...string) error {
 }
 
 // Returns the value of env variable JIT_DIR
-func JitDir() (string, error) {
-	path, ok := os.LookupEnv("JIT_DIR")
+func JitDir() (path.JitDir, error) {
+	jitDir, ok := os.LookupEnv("JIT_DIR")
 	if !ok {
 		return "", fmt.Errorf("env var JIT_DIR not set")
 	}
-	return path, nil
+	return path.JitDir(jitDir), nil
+}
+
+func DefaultRepoBasePath(user, repo string) (path.Repo, error) {
+	jitDir, err := JitDir()
+	if err != nil {
+		return "", fmt.Errorf("getting jit dir: %w", err)
+	}
+
+	return path.RepoPath(jitDir, user, repo), nil
 }
 
 // ReqArg will first see if args[i] has been defined.
@@ -61,31 +72,33 @@ func Prompt(prompt string) (string, error) {
 }
 
 // Returns the root folder of the current repo
-func RepoBasePath() (string, error) {
-	stdout, err := ExecGit("", "rev-parse", "--path-format=absolute", "--git-common-dir")
+func RepoBasePath() (path.Repo, error) {
+	stdout, err := ExecGit(path.CurrentDir, "rev-parse", "--path-format=absolute", "--git-common-dir")
 	if err != nil {
 		return "", err
 	}
 
-	path := filepath.Dir(stdout)
-	return path, nil
+	basepath := filepath.Dir(stdout)
+	return path.Repo(basepath), nil
 }
 
 // Returns the absolute file path to the given branch/worktree
+// TODO: replace this with LookupWorktreeForBranch
 func WorktreePath(branch string) (string, error) {
 	// Get path to new worktree
 	gitDir, err := RepoBasePath()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(gitDir, branch), nil
+	return filepath.Join(gitDir.Path(), branch), nil
 }
 
 var ErrUpstreamNotFound = fmt.Errorf("upstream not found")
 
 // Returns push location (remote, branch) for the given branch
+// TODO: replace this with git.PushTarget
 func PushLoc(localBranch string) (remote, remoteBranch string, err error) {
-	stdout, err := ExecGit("", "for-each-ref", "--format='%(push:short)'",
+	stdout, err := ExecGit(path.CurrentDir, "for-each-ref", "--format='%(push:short)'",
 		fmt.Sprintf("refs/heads/%s", localBranch))
 	if err != nil {
 		return "", "", err
@@ -103,9 +116,14 @@ func GitHubUser() string {
 	return os.Getenv("GH_USER")
 }
 
+func DefaultRemote() types.RemoteName {
+	return types.RemoteName(GitHubUser())
+}
+
 // Fetches the given branches.
 // If remote == "", it will fetch all branches.
 // If branch == "", it will fetch all branches for the given remote.
+// TODO: replace with git.Fetch
 func Fetch(remote, branch string) error {
 	args := []string{"fetch"}
 	if remote != "" {

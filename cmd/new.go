@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"github.com/barrettj12/jit/common"
 	"github.com/barrettj12/jit/common/git"
+	"github.com/barrettj12/jit/common/path"
+	"github.com/barrettj12/jit/common/types"
+	"github.com/barrettj12/jit/common/url"
 	"github.com/spf13/cobra"
 	"strings"
 )
@@ -42,20 +45,21 @@ func newNewCmd() *cobra.Command {
 }
 
 func New(cmd *cobra.Command, args []string) error {
-	var branchName string
+	var branchName types.LocalBranch
 	var edit func() error
 	var err error
 
 	if len(args) > 1 {
-		branchName = args[0]
-		edit, err = newWorktreeNewBranchWithBase(branchName, args[1])
+		// New branch based on existing
+		newBranch := types.LocalBranch(args[0])
+		base := types.LocalBranch(args[1])
+		branchName, edit, err = newWorktreeNewBranchWithBase(newBranch, base)
 	} else if strings.Contains(args[0], ":") {
-		split := strings.SplitN(args[0], ":", 2)
-		branchName = split[1]
-		edit, err = newWorktreeBasedOnRemoteBranch(split[0], branchName)
+		branch := types.ParseGitHubBranch(args[0])
+		branchName, edit, err = newWorktreeBasedOnGitHubBranch(branch)
 	} else {
-		branchName = args[0]
-		edit, err = newWorktreeBasedOnExistingBranch(branchName)
+		branch := types.LocalBranch(args[0])
+		branchName, edit, err = newWorktreeBasedOnExistingBranch(branch)
 	}
 
 	if err != nil {
@@ -77,12 +81,13 @@ func New(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func newWorktreeBasedOnExistingBranch(branch string) (common.EditFunc, error) {
+func newWorktreeBasedOnExistingBranch(branch types.LocalBranch) (types.LocalBranch, common.EditFunc, error) {
 	fmt.Printf("creating new worktree based on existing local branch %q\n", branch)
-	return common.AddWorktree("", branch)
+	edit, err := common.AddWorktree("", branch)
+	return branch, edit, err
 }
 
-func newWorktreeNewBranchWithBase(newBranch, base string) (common.EditFunc, error) {
+func newWorktreeNewBranchWithBase(newBranch, base types.LocalBranch) (types.LocalBranch, common.EditFunc, error) {
 	fmt.Printf("Pulling branch %q...\n", base)
 	err := common.Pull(base)
 	if err != nil {
@@ -92,44 +97,53 @@ func newWorktreeNewBranchWithBase(newBranch, base string) (common.EditFunc, erro
 	fmt.Printf("creating new branch %q based on %q\n", newBranch, base)
 	err = git.CreateBranch(newBranch, base)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't create branch %q: %w", newBranch, err)
+		return "", nil, fmt.Errorf("couldn't create branch %q: %w", newBranch, err)
 	}
 
-	return common.AddWorktree("", newBranch)
+	edit, err := common.AddWorktree("", newBranch)
+	return newBranch, edit, err
 }
 
-func newWorktreeBasedOnRemoteBranch(remote, branch string) (common.EditFunc, error) {
+func newWorktreeBasedOnGitHubBranch(gitHubBranch types.GitHubBranch) (types.LocalBranch, common.EditFunc, error) {
 	repoBasePath, err := common.RepoBasePath()
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get repo base path: %w", err)
+		return "", nil, fmt.Errorf("couldn't get repo base path: %w", err)
 	}
 
-	fmt.Printf("creating new worktree based on remote branch %s:%s\n", remote, branch)
+	fmt.Printf("creating new worktree based on remote branch %q\n", gitHubBranch)
 
 	// Add remote if it doesn't exist
+	// TODO: possible that remote name != username, we should check the list of Git remotes
+	remote := types.RemoteName(gitHubBranch.RepoURL.Owner())
 	remoteExists, err := git.RemoteExists(repoBasePath, remote)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't calculate if remote %q exists: %w", remote, err)
+		return "", nil, fmt.Errorf("couldn't calculate if remote %q exists: %w", remote, err)
 	}
 	if !remoteExists {
-		err = addRemote(remote, "")
+		err = addRemote(remote, url.Nil)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't add remote %q: %w", remote, err)
+			return "", nil, fmt.Errorf("couldn't add remote %q: %w", remote, err)
 		}
 	}
 
 	// Fetch the remote branch
-	err = git.Fetch("", remote, branch)
+	remoteBranch := types.RemoteBranch{
+		Remote: remote,
+		Branch: gitHubBranch.Branch,
+	}
+	err = git.Fetch(path.CurrentDir, remoteBranch)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't fetch remote branch %s:%s: %w", remote, branch, err)
+		return "", nil, fmt.Errorf("couldn't fetch remote branch %q: %w", remoteBranch, err)
 	}
 
 	// Create new branch
 	// This step also sets the upstream, since we are basing it on a remote branch.
-	err = git.CreateBranch(branch, fmt.Sprintf("%s/%s", remote, branch))
+	localBranch := types.LocalBranch(remoteBranch.Branch)
+	err = git.CreateBranch(localBranch, remoteBranch.AsLocalBranch())
 	if err != nil {
-		return nil, fmt.Errorf("couldn't create branch %q: %w", branch, err)
+		return "", nil, fmt.Errorf("couldn't create branch %q: %w", localBranch, err)
 	}
 
-	return common.AddWorktree("", branch)
+	edit, err := common.AddWorktree("", localBranch)
+	return localBranch, edit, err
 }

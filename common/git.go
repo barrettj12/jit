@@ -2,12 +2,13 @@ package common
 
 import (
 	"fmt"
+	"github.com/barrettj12/jit/common/path"
 	"regexp"
 )
 
 var reErrGitNotARepo = regexp.MustCompile("not a git repository")
 
-func ExecGit(dir string, args ...string) (string, error) {
+func ExecGit(dir path.Dir, args ...string) (string, error) {
 	res := Exec(ExecArgs{
 		Cmd:  "git",
 		Args: args,

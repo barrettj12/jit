@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/barrettj12/jit/common/gh"
 	"github.com/barrettj12/jit/common/git"
+	"github.com/barrettj12/jit/common/types"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
@@ -22,12 +23,13 @@ func Squash(cmd *cobra.Command, args []string) error {
 	}
 
 	// Find base commit to rebase against
-	mergeBase, err := git.MergeBase("HEAD", prInfo.BaseBranch)
+	base := types.LocalBranch(prInfo.BaseBranch)
+	mergeBase, err := git.MergeBase(types.HEAD, base)
 	if err != nil {
 		return fmt.Errorf("finding merge base: %w", err)
 	}
 
-	fmt.Printf("squashing against %q commit %s...\n", prInfo.BaseBranch, mergeBase[:10])
+	fmt.Printf("squashing against %q commit %s...\n", base, mergeBase[:10])
 	err = git.Rebase(git.RebaseArgs{
 		Base:        mergeBase,
 		Interactive: true,

@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/barrettj12/jit/common/git"
-	"github.com/spf13/cobra"
-	"path/filepath"
-
 	"github.com/barrettj12/jit/common"
+	"github.com/barrettj12/jit/common/git"
+	"github.com/barrettj12/jit/common/types"
+	"github.com/barrettj12/jit/common/url"
+	"github.com/spf13/cobra"
 )
 
 var addRemoteCmd = &cobra.Command{
@@ -16,32 +16,32 @@ var addRemoteCmd = &cobra.Command{
 }
 
 func AddRemote(cmd *cobra.Command, args []string) error {
-	remoteName, err := common.ReqArg(args, 0, "Which remote would you like to add?")
+	name, err := common.ReqArg(args, 0, "Which remote would you like to add?")
 	if err != nil {
 		return err
 	}
 
-	var remoteURL string
+	var repo string
 	if len(args) >= 2 {
-		remoteURL = args[1]
+		repo = args[1]
 	}
-	return addRemote(remoteName, remoteURL)
+	return addRemote(types.RemoteName(name), url.Raw(repo))
 }
 
-func addRemote(name, url string) error {
-	if url == "" {
+// TODO: move to common
+func addRemote(name types.RemoteName, repo url.RemoteRepo) error {
+	if url.IsNil(repo) {
 		repoPath, err := common.RepoBasePath()
 		if err != nil {
-			return err
+			return fmt.Errorf("getting repo base path: %w", err)
 		}
-		repoName := filepath.Base(repoPath)
-		url = githubURL(name, repoName)
+		repo = url.GitHubURL(string(name), repoPath.RepoName())
 	}
 
-	err := git.AddRemote(name, url)
+	err := git.AddRemote(name, repo)
 	if err != nil {
 		return fmt.Errorf("error adding remote: %w", err)
 	}
-	fmt.Printf("added remote %s (%s)\n", name, url)
+	fmt.Printf("added remote %s (%s)\n", name, repo)
 	return nil
 }

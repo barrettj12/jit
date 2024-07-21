@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"fmt"
+	"github.com/barrettj12/jit/common/path"
 	"os"
 	"path/filepath"
 	"testing"
@@ -11,7 +12,7 @@ import (
 // folder. If a dir is passed in, the test repo will be created inside that
 // dir, otherwise it will be placed in a temporary folder. In any case, the
 // full path to the created test repo will be returned.
-func SetupTestRepo(t *testing.T, dir string) (path string) {
+func SetupTestRepo(t *testing.T, dir string) path.Repo {
 	repoPath, err := os.MkdirTemp(dir, "testrepo")
 	CheckErr(t, err)
 	t.Cleanup(func() {
@@ -25,7 +26,7 @@ func SetupTestRepo(t *testing.T, dir string) (path string) {
 	RunCommand(t, repoPath, "git", "init")
 
 	AddCommit(t, repoPath, "foo.txt")
-	return repoPath
+	return path.Repo(repoPath)
 }
 
 // AddCommit commits a file to the current repo.

@@ -3,10 +3,10 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"github.com/barrettj12/jit/common/path"
 	"github.com/spf13/cobra"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	"github.com/barrettj12/jit/common"
@@ -20,21 +20,21 @@ var publishCmd = &cobra.Command{
 
 func Publish(cmd *cobra.Command, args []string) error {
 	// Run git status to check if repo exists
-	_, err := common.ExecGit("", "status")
+	_, err := common.ExecGit(path.CurrentDir, "status")
 	switch err {
 	case nil:
 		fmt.Println("Git repo already exists")
 
 	case common.ErrGitNotARepo:
 		// git init
-		initMsg, err := common.ExecGit("", "init")
+		initMsg, err := common.ExecGit(path.CurrentDir, "init")
 		if err != nil {
 			return fmt.Errorf("could not initialise git repo: %w", err)
 		}
 		fmt.Println(initMsg)
 
 		// Show files to be added
-		files, err := common.ExecGit("", "status", "-s")
+		files, err := common.ExecGit(path.CurrentDir, "status", "-s")
 		if err != nil {
 			return err
 		}
@@ -55,7 +55,7 @@ to upload to GitHub.
 		}
 
 		// git add .
-		_, err = common.ExecGit("", "add", ".")
+		_, err = common.ExecGit(path.CurrentDir, "add", ".")
 		if err != nil {
 			return err
 		}
@@ -69,7 +69,7 @@ to upload to GitHub.
 			commitMsg = "Initial commit"
 		}
 
-		_, err = common.ExecGit("", "commit", "-m", commitMsg)
+		_, err = common.ExecGit(path.CurrentDir, "commit", "-m", commitMsg)
 		if err != nil {
 			return err
 		}
@@ -90,11 +90,11 @@ to upload to GitHub.
 	}
 
 	// Get name for new repo
-	path, err := common.RepoBasePath()
+	repoPath, err := common.RepoBasePath()
 	if err != nil {
 		return err
 	}
-	defRepoName := filepath.Base(path)
+	defRepoName := repoPath.RepoName()
 
 	repoName, err := common.Prompt(fmt.Sprintf("Name for new repo [default is %q]", defRepoName))
 	if err != nil {
@@ -118,7 +118,7 @@ to upload to GitHub.
 
 	// Push to remote
 	// git push <remote> HEAD -u
-	_, err = common.ExecGit("", "push", remoteName, "HEAD", "-u")
+	_, err = common.ExecGit(path.CurrentDir, "push", remoteName, "HEAD", "-u")
 	return err
 }
 
