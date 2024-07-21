@@ -36,6 +36,16 @@ jit pull main
 # Check branch2 is still not in cloned repo
 git branch -r | grep 'pull/branch2' && exit 1
 
+# Regression test for https://github.com/barrettj12/jit/issues/46
+# Create new remote branch
+add_remote_branch pull/repo1 branch3 main
+# Pull remote branch
+jit new pull:branch3
+# Delete remote tracking branch
+git branch -D --remote pull/branch3
+# Try to pull branch
+jit pull branch3
+
 # Cleanup
 rm -rf $GIT_PROJECT_ROOT/pull
 rm -rf $JIT_DIR/pull
