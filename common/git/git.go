@@ -3,6 +3,7 @@ package git
 import (
 	"bytes"
 	"fmt"
+	"github.com/barrettj12/jit/common/env"
 	"github.com/barrettj12/jit/common/path"
 	"github.com/barrettj12/jit/common/types"
 	"github.com/barrettj12/jit/common/url"
@@ -105,7 +106,7 @@ var internalExec = func(opts internalExecArgs) (string, error) {
 		cmd.Stderr = stderrBuffer
 	}
 
-	if os.Getenv("JIT_DEBUG") != "" {
+	if env.Debug() {
 		fmt.Println(cmd.String())
 	}
 

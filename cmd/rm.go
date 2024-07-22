@@ -4,10 +4,10 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/barrettj12/jit/common/env"
 	"github.com/barrettj12/jit/common/path"
 	"github.com/spf13/cobra"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/barrettj12/jit/common"
@@ -148,10 +148,8 @@ func Remove(cmd *cobra.Command, args []string) error {
 
 // TODO: move this to common
 func confirm(prompt string) (bool, error) {
-	nonInteractive := os.Getenv("JIT_NONINTERACTIVE")
-	parsed, err := strconv.ParseBool(nonInteractive)
-	if err == nil && parsed {
-		panic("internal error: common.Prompt called with JIT_NONINTERACTIVE=1")
+	if env.NonInteractive() {
+		panic("internal error: common.Prompt called with JIT_NONINTERACTIVE enabled")
 	}
 
 	sc := bufio.NewScanner(os.Stdin)

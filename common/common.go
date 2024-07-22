@@ -3,12 +3,12 @@ package common
 import (
 	"bufio"
 	"fmt"
+	"github.com/barrettj12/jit/common/env"
 	"github.com/barrettj12/jit/common/path"
 	"github.com/barrettj12/jit/common/types"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
@@ -25,17 +25,8 @@ func Git(cmd string, args ...string) error {
 	return Execute("git", gitArgs...)
 }
 
-// Returns the value of env variable JIT_DIR
-func JitDir() (path.JitDir, error) {
-	jitDir, ok := os.LookupEnv("JIT_DIR")
-	if !ok {
-		return "", fmt.Errorf("env var JIT_DIR not set")
-	}
-	return path.JitDir(jitDir), nil
-}
-
 func DefaultRepoBasePath(user, repo string) (path.Repo, error) {
-	jitDir, err := JitDir()
+	jitDir, err := env.JitDir()
 	if err != nil {
 		return "", fmt.Errorf("getting jit dir: %w", err)
 	}
@@ -56,10 +47,8 @@ func ReqArg(args []string, i int, prompt string) (string, error) {
 
 // Prompt the user to enter a value.
 func Prompt(prompt string) (string, error) {
-	nonInteractive := os.Getenv("JIT_NONINTERACTIVE")
-	parsed, err := strconv.ParseBool(nonInteractive)
-	if err == nil && parsed {
-		panic("internal error: common.Prompt called with JIT_NONINTERACTIVE=1")
+	if env.NonInteractive() {
+		panic("internal error: common.Prompt called with JIT_NONINTERACTIVE enabled")
 	}
 
 	sc := bufio.NewScanner(os.Stdin)
@@ -112,12 +101,12 @@ func PushLoc(localBranch string) (remote, remoteBranch string, err error) {
 	return split[0], split[1], nil
 }
 
-func GitHubUser() string {
-	return os.Getenv("GH_USER")
-}
-
-func DefaultRemote() types.RemoteName {
-	return types.RemoteName(GitHubUser())
+func DefaultRemote() (types.RemoteName, error) {
+	ghUser, err := env.GitHubUser()
+	if err != nil {
+		return "", err
+	}
+	return types.RemoteName(ghUser), nil
 }
 
 // Fetches the given branches.
