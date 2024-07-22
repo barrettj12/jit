@@ -37,9 +37,9 @@ func AddRemote(name types.RemoteName, url url.RemoteRepo) error {
 }
 
 type RemoteInfo struct {
-	Name     string
-	FetchURL string
-	PushURL  string
+	Name     types.RemoteName
+	FetchURL url.GitHubRepo
+	PushURL  url.GitHubRepo
 }
 
 func ListRemotes() (map[string]*RemoteInfo, error) {
@@ -57,16 +57,16 @@ func ListRemotes() (map[string]*RemoteInfo, error) {
 		name := split[0]
 		if _, ok := remotes[name]; !ok {
 			remotes[name] = &RemoteInfo{
-				Name: name,
+				Name: types.RemoteName(name),
 			}
 		}
 
 		urlInfo := split[1]
-		if url, ok := strings.CutSuffix(urlInfo, " (fetch)"); ok {
-			remotes[name].FetchURL = url
+		if fetchURL, ok := strings.CutSuffix(urlInfo, " (fetch)"); ok {
+			remotes[name].FetchURL = url.GitHubRepo(fetchURL)
 		}
-		if url, ok := strings.CutSuffix(urlInfo, " (push)"); ok {
-			remotes[name].PushURL = url
+		if pushURL, ok := strings.CutSuffix(urlInfo, " (push)"); ok {
+			remotes[name].PushURL = url.GitHubRepo(pushURL)
 		}
 	}
 	return remotes, nil
