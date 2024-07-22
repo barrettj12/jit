@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 )
 
 func Execute(script string, args ...string) error {
@@ -80,25 +79,6 @@ func WorktreePath(branch string) (string, error) {
 		return "", err
 	}
 	return filepath.Join(gitDir.Path(), branch), nil
-}
-
-var ErrUpstreamNotFound = fmt.Errorf("upstream not found")
-
-// Returns push location (remote, branch) for the given branch
-// TODO: replace this with git.PushTarget
-func PushLoc(localBranch string) (remote, remoteBranch string, err error) {
-	stdout, err := ExecGit(path.CurrentDir, "for-each-ref", "--format='%(push:short)'",
-		fmt.Sprintf("refs/heads/%s", localBranch))
-	if err != nil {
-		return "", "", err
-	}
-
-	pushloc := strings.Trim(stdout, "'\n")
-	if pushloc == "" {
-		return "", "", ErrUpstreamNotFound
-	}
-	split := strings.Split(pushloc, "/")
-	return split[0], split[1], nil
 }
 
 func DefaultRemote() (types.RemoteName, error) {
