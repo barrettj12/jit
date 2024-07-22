@@ -26,8 +26,8 @@ func Push(cmd *cobra.Command, args []string) error {
 	}
 	if pushTarget == types.NoRemote {
 		// No upstream is set, so we need to set it in the push.
-		remote := common.DefaultRemote()
-		if remote == "" {
+		remote, err := common.DefaultRemote()
+		if err != nil {
 			return fmt.Errorf(`can't determine push destination for current branch.
 Please set the GH_USER env var or set the upstream manually.`)
 		}

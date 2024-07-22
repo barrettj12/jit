@@ -25,7 +25,8 @@ func What(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		fmt.Printf("ERROR: %v\n", err)
 		// Just default to the local branch name
-		remote = common.GitHubUser()
+		defaultRemote, _ := common.DefaultRemote()
+		remote = string(defaultRemote)
 		remoteBranch = localBranch
 		fmt.Printf("assuming remote branch is %s:%s\n\n", remote, remoteBranch)
 	}

@@ -105,10 +105,13 @@ to upload to GitHub.
 	}
 
 	// gh repo create <name> --source=. --public -r <ghUser>
-	remoteName := common.GitHubUser()
+	remoteName, err := common.DefaultRemote()
+	if err != nil {
+		return fmt.Errorf("don't know what remote name to give the new repo. Please set the env var GH_USER to your GitHub username")
+	}
 	res := common.Exec(common.ExecArgs{
 		Cmd:    "gh",
-		Args:   []string{"repo", "create", repoName, "--source=.", "--public", "-r", remoteName},
+		Args:   []string{"repo", "create", repoName, "--source=.", "--public", "-r", string(remoteName)},
 		Stdout: os.Stdout,
 		Stderr: os.Stdout,
 	})
@@ -118,7 +121,7 @@ to upload to GitHub.
 
 	// Push to remote
 	// git push <remote> HEAD -u
-	_, err = common.ExecGit(path.CurrentDir, "push", remoteName, "HEAD", "-u")
+	_, err = common.ExecGit(path.CurrentDir, "push", string(remoteName), "HEAD", "-u")
 	return err
 }
 
