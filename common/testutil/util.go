@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"os/exec"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -34,5 +35,11 @@ func AssertEqual[T comparable](t *testing.T, obtained, expected T) {
 func AssertNotEqual[T comparable](t *testing.T, obtained, expected T) {
 	if obtained == expected {
 		t.Fatalf("obtained and expected are equal = %#v", expected)
+	}
+}
+
+func AssertDeepEqual[T any](t *testing.T, obtained, expected T) {
+	if !reflect.DeepEqual(obtained, expected) {
+		t.Fatalf("value not as expected: %#v\n", obtained)
 	}
 }
