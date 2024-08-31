@@ -122,3 +122,25 @@ func SetUpstream(opts SetUpstreamArgs) error {
 	})
 	return err
 }
+
+func Switch(branch types.LocalBranch) error {
+	_, err := internalExec(internalExecArgs{
+		args: []string{"switch", string(branch)},
+	})
+	return err
+}
+
+func DeleteBranch(branch types.LocalBranch, force bool) error {
+	args := []string{"branch"}
+	if force {
+		args = append(args, "-D")
+	} else {
+		args = append(args, "-d")
+	}
+	args = append(args, string(branch))
+
+	_, err := internalExec(internalExecArgs{
+		args: args,
+	})
+	return err
+}

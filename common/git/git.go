@@ -82,9 +82,45 @@ func MergeBase(branch1, branch2 types.LocalBranch) (types.LocalBranch, error) {
 	return types.LocalBranch(strings.TrimSpace(out)), nil
 }
 
+type MergeArgs struct {
+	Branch types.LocalBranch // branch to merge into current
+	Squash bool
+}
+
+func Merge(opts MergeArgs) error {
+	args := []string{"merge"}
+	if opts.Squash {
+		args = append(args, "--squash")
+	}
+	args = append(args, string(opts.Branch))
+
+	_, err := internalExec(internalExecArgs{
+		args:         args,
+		attachStdout: true,
+	})
+	return err
+}
+
+type CommitArgs struct {
+	Message string // commit message to use
+}
+
+func Commit(opts CommitArgs) error {
+	args := []string{"commit"}
+	if opts.Message != "" {
+		args = append(args, "-m", opts.Message)
+	}
+
+	_, err := internalExec(internalExecArgs{
+		args: args,
+	})
+	return err
+}
+
 type internalExecArgs struct {
 	args         []string // args to feed to git
 	dir          path.Dir // directory to run the command in
+	attachStdout bool     // if true, attach cmd stdout to os.Stdout
 	attachStderr bool     // if true, attach cmd stderr to os.Stderr
 	env          []string // environment variable key=value pairs
 }
@@ -96,8 +132,12 @@ var internalExec = func(opts internalExecArgs) (string, error) {
 	cmd.Env = append(cmd.Environ(), opts.env...)
 
 	// Handle stdout/stderr
-	stdout := &bytes.Buffer{}
-	cmd.Stdout = stdout
+	stdoutBuffer := &bytes.Buffer{}
+	if opts.attachStdout {
+		cmd.Stdout = io.MultiWriter(stdoutBuffer, os.Stdout)
+	} else {
+		cmd.Stdout = stdoutBuffer
+	}
 
 	stderrBuffer := &bytes.Buffer{}
 	if opts.attachStderr {
@@ -120,5 +160,5 @@ var internalExec = func(opts internalExecArgs) (string, error) {
 		return "", fmt.Errorf("%s\n%w", errInfo, runErr)
 	}
 
-	return stdout.String(), nil
+	return stdoutBuffer.String(), nil
 }
