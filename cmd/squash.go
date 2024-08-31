@@ -2,12 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/barrettj12/jit/common"
 	"github.com/barrettj12/jit/common/gh"
 	"github.com/barrettj12/jit/common/git"
+	"github.com/barrettj12/jit/common/path"
 	"github.com/barrettj12/jit/common/types"
 	"github.com/spf13/cobra"
-	"os"
-	"strings"
 )
 
 var squashCmd = &cobra.Command{
@@ -22,64 +22,72 @@ func Squash(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("getting pull request for current branch: %w", err)
 	}
 
-	// Find base commit to rebase against
+	// Find base branch to squash against
 	base := types.LocalBranch(prInfo.BaseBranch)
-	mergeBase, err := git.MergeBase(types.HEAD, base)
+	err = common.Pull(base)
 	if err != nil {
-		return fmt.Errorf("finding merge base: %w", err)
+		fmt.Printf("WARNING: couldn't pull branch %q: %s\n", base, err)
 	}
 
-	fmt.Printf("squashing against %q commit %s...\n", base, mergeBase[:10])
-	err = git.Rebase(git.RebaseArgs{
-		Base:        mergeBase,
-		Interactive: true,
-		Env:         []string{"GIT_SEQUENCE_EDITOR=jit squash-editor"},
+	currentBranch, err := git.CurrentBranch(path.CurrentDir)
+	if err != nil {
+		return fmt.Errorf("couldn't get current branch: %w", err)
+	}
+
+	// Create new temp branch based on base branch
+	squashBranch := squashBranchName(currentBranch)
+	err = git.CreateBranch(squashBranch, base)
+	if err != nil {
+		return fmt.Errorf("couldn't create new branch: %w", err)
+	}
+	// Cleanup branch later
+	defer func() {
+		err = git.DeleteBranch(squashBranch, false)
+		if err != nil {
+			fmt.Printf("WARNING: couldn't delete branch %q: %s\n", squashBranch, err)
+		}
+	}()
+
+	// Switch to new temp branch
+	err = git.Switch(squashBranch)
+	if err != nil {
+		return fmt.Errorf("switching to branch %q: %w", squashBranch, err)
+	}
+
+	// git merge --squash <old-branch>
+	err = git.Merge(git.MergeArgs{
+		Branch: currentBranch,
+		Squash: true,
 	})
 	if err != nil {
-		return fmt.Errorf("rebasing: %w", err)
+		return fmt.Errorf("merging branch %q into %q: %w", currentBranch, squashBranch, err)
 	}
 
-	fmt.Println("successfully squashed")
+	// Commit all changes
+	// TODO: use the -c / --reedit-message option to edit existing message
+	err = git.Commit(git.CommitArgs{})
+	if err != nil {
+		return fmt.Errorf("committing changes to branch %q: %w", squashBranch, err)
+	}
+
+	// Reset the old branch to the new branch's HEAD
+	err = git.Switch(currentBranch)
+	if err != nil {
+		return fmt.Errorf("switching to branch %q: %w", currentBranch, err)
+	}
+	err = git.Reset(git.ResetArgs{
+		Branch: squashBranch,
+		Mode:   git.HardReset,
+	})
+	if err != nil {
+		return fmt.Errorf("resetting branch %q to %q: %w", currentBranch, squashBranch, err)
+	}
+
 	return nil
 }
 
-var squashEditorCmd = &cobra.Command{
-	Use:    "squash-editor",
-	Hidden: true,
-	RunE:   SquashEditor,
-}
-
-func SquashEditor(cmd *cobra.Command, args []string) error {
-	filename := args[0]
-
-	fileContents, err := os.ReadFile(filename)
-	if err != nil {
-		return fmt.Errorf("reading file %q: %w", filename, err)
-	}
-	lines := strings.Split(string(fileContents), "\n")
-
-	file, err := os.Create(filename)
-	defer file.Close()
-	if err != nil {
-		return fmt.Errorf("opening file %q: %w", filename, err)
-	}
-
-	// First line (commit) unchanged
-	_, err = file.WriteString(lines[0] + "\n")
-	if err != nil {
-		return fmt.Errorf("writing to file %q: %w", filename, err)
-	}
-
-	for _, line := range lines[1:] {
-		if strings.HasPrefix(line, "pick ") {
-			cutLine, _ := strings.CutPrefix(line, "pick ")
-			line = "f " + cutLine
-		}
-
-		_, err = file.WriteString(line + "\n")
-		if err != nil {
-			return fmt.Errorf("writing to file %q: %w", filename, err)
-		}
-	}
-	return nil
+// squashBranchName returns the name to use for the temporary branch used for
+// squashing.
+func squashBranchName(currentBranch types.LocalBranch) types.LocalBranch {
+	return "jit/squash/" + currentBranch
 }
