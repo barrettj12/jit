@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/barrettj12/jit/common"
 	"github.com/barrettj12/jit/common/git"
 	"github.com/barrettj12/jit/common/path"
 	"github.com/barrettj12/jit/common/types"
 	"github.com/barrettj12/jit/common/url"
 	"github.com/spf13/cobra"
-	"strconv"
 )
 
 var cloneDocs = `
@@ -45,12 +46,12 @@ func newCloneCmd() *cobra.Command {
 // Clone clones the provided repo, using the workflow described in
 // https://morgan.cugerone.com/blog/how-to-use-git-worktree-and-in-a-clean-way/
 func Clone(cmd *cobra.Command, args []string) error {
-	githubRepo := url.GitHubURL(args...)
-	user := githubRepo.Owner()
+	repoURL := url.URL(args...)
+	user := repoURL.Owner()
 	if user == "" {
 		return fmt.Errorf("must specify a user to clone repo from")
 	}
-	repo := githubRepo.RepoName()
+	repo := repoURL.RepoName()
 	if repo == "" {
 		return fmt.Errorf("must specify a repo to clone")
 	}
@@ -64,7 +65,7 @@ func Clone(cmd *cobra.Command, args []string) error {
 	// Clone the repo
 	remote := types.RemoteName(user)
 	err = git.Clone(git.CloneArgs{
-		Repo:       githubRepo,
+		Repo:       repoURL,
 		CloneDir:   path.GitFolderPath(cloneDir),
 		Bare:       true,
 		OriginName: remote,
@@ -97,11 +98,14 @@ Create new branches using
 
 	var shouldFork bool
 	if forkFlagVal == "" {
-		// The user did not specify when typing the command whether we should
-		// fork the repo or not. Ask them.
-		shouldFork, err = confirm("Create a fork")
-		if err != nil {
-			return err
+		// Only ask to fork if this is a GitHub repo
+		if repoURL.HostedBy() == url.GitHub {
+			// The user did not specify when typing the command whether we should
+			// fork the repo or not. Ask them.
+			shouldFork, err = confirm("Create a fork")
+			if err != nil {
+				return err
+			}
 		}
 	} else {
 		shouldFork, err = strconv.ParseBool(forkFlagVal)
@@ -111,9 +115,13 @@ Create new branches using
 	}
 
 	if shouldFork {
-		err = fork(cloneDir, user, repo)
-		if err != nil {
-			return err
+		if repoURL.HostedBy() == url.GitHub {
+			err = fork(cloneDir, user, repo)
+			if err != nil {
+				return err
+			}
+		} else {
+			fmt.Printf("WARNING: don't know how to fork for repo type %q, skipping\n", repoURL.HostedBy())
 		}
 	}
 

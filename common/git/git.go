@@ -3,14 +3,15 @@ package git
 import (
 	"bytes"
 	"fmt"
-	"github.com/barrettj12/jit/common/env"
-	"github.com/barrettj12/jit/common/path"
-	"github.com/barrettj12/jit/common/types"
-	"github.com/barrettj12/jit/common/url"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/barrettj12/jit/common/env"
+	"github.com/barrettj12/jit/common/path"
+	"github.com/barrettj12/jit/common/types"
+	"github.com/barrettj12/jit/common/url"
 )
 
 type CloneArgs struct {
@@ -33,7 +34,11 @@ func Clone(opts CloneArgs) error {
 		args = append(args, out)
 	}
 
-	_, err := internalExec(internalExecArgs{args: args})
+	_, err := internalExec(internalExecArgs{
+		args:         args,
+		attachStdout: true,
+		attachStderr: true,
+	})
 	return err
 }
 
@@ -150,8 +155,7 @@ var internalExec = func(opts internalExecArgs) (string, error) {
 		fmt.Println(cmd.String())
 	}
 
-	var runErr error
-	runErr = cmd.Run() // this error contains the exit code
+	runErr := cmd.Run() // this error contains the exit code
 
 	// handle errors
 	if runErr != nil {
