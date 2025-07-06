@@ -2,13 +2,15 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/barrettj12/jit/common"
+	"github.com/barrettj12/jit/common/config"
 	"github.com/barrettj12/jit/common/git"
 	"github.com/barrettj12/jit/common/path"
 	"github.com/barrettj12/jit/common/types"
 	"github.com/barrettj12/jit/common/url"
 	"github.com/spf13/cobra"
-	"strings"
 )
 
 var newDocs = `
@@ -66,12 +68,31 @@ func New(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create new branch: %w", err)
 	}
 
-	noEdit, err := cmd.Flags().GetBool("no-edit")
-	if err != nil {
-		fmt.Printf("WARNING could not get value of --no-edit flag, will open new branch for editing anyway\n")
-		noEdit = false
+	// Open new branch for editing (maybe)
+	var getShouldEditFromConfig = func() bool {
+		shouldEdit, err := config.EditNewBranches()
+		if err != nil {
+			// Default to false as not to be annoying
+			return false
+		}
+		return shouldEdit
 	}
-	if !noEdit {
+
+	var shouldEdit bool
+	if cmd.Flags().Changed("no-edit") {
+		noEdit, err := cmd.Flags().GetBool("no-edit")
+		if err == nil {
+			shouldEdit = !noEdit
+		} else {
+			// Fall back to config default
+			shouldEdit = getShouldEditFromConfig()
+		}
+	} else {
+		// Fall back to config default
+		shouldEdit = getShouldEditFromConfig()
+	}
+
+	if shouldEdit {
 		err = edit()
 		if err != nil {
 			fmt.Printf("WARNING could not open branch %q for editing: %v\n", branchName, err)
@@ -79,6 +100,7 @@ func New(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+
 }
 
 func newWorktreeBasedOnExistingBranch(branch types.LocalBranch) (types.LocalBranch, common.EditFunc, error) {

@@ -1,6 +1,10 @@
 # Test `jit edit` command
 set -ex
 
+# Set up config file with default editor
+mkdir -p "$HOME/.jit"
+echo 'editor: goland' > "$HOME/.jit/config.yaml"
+
 # Set up test repo
 setup_test_repo edit/repo1
 jit clone edit/repo1 --fork=false
