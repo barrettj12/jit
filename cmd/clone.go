@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/barrettj12/jit/common"
+	"github.com/barrettj12/jit/common/config"
 	"github.com/barrettj12/jit/common/git"
 	"github.com/barrettj12/jit/common/path"
 	"github.com/barrettj12/jit/common/types"
@@ -157,12 +158,30 @@ Create new branches using
 	fmt.Printf("created initial worktree %s\n", currentBranch)
 
 	// Open new branch for editing (maybe)
-	noEdit, err := cmd.Flags().GetBool("no-edit")
-	if err != nil {
-		fmt.Printf("WARNING could not get value of --no-edit flag, opening for editing anyway\n")
-		noEdit = false
+	var getShouldEditFromConfig = func() bool {
+		shouldEdit, err := config.EditNewBranches()
+		if err != nil {
+			// Default to false as not to be annoying
+			return false
+		}
+		return shouldEdit
 	}
-	if !noEdit {
+
+	var shouldEdit bool
+	if cmd.Flags().Changed("no-edit") {
+		noEdit, err := cmd.Flags().GetBool("no-edit")
+		if err == nil {
+			shouldEdit = !noEdit
+		} else {
+			// Fall back to config default
+			shouldEdit = getShouldEditFromConfig()
+		}
+	} else {
+		// Fall back to config default
+		shouldEdit = getShouldEditFromConfig()
+	}
+
+	if shouldEdit {
 		err = edit()
 		if err != nil {
 			fmt.Printf("WARNING could not open branch %q for editing: %v\n", currentBranch, err)

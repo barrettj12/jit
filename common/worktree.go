@@ -2,10 +2,12 @@ package common
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/barrettj12/jit/common/config"
 	"github.com/barrettj12/jit/common/git"
 	"github.com/barrettj12/jit/common/path"
 	"github.com/barrettj12/jit/common/types"
-	"strings"
 )
 
 // AddWorktree adds a worktree for the given branch. It assumes the branch
@@ -97,8 +99,11 @@ func LookupWorktreeForBranch(branch types.LocalBranch) (path.Worktree, error) {
 type EditFunc func() error
 
 func EditWorktree(path path.Worktree) EditFunc {
-	editor := defaultEditor()
+	editor, err := config.Editor()
 	return func() error {
+		if err != nil {
+			return err
+		}
 		res := Exec(ExecArgs{
 			Cmd:        editor,
 			Args:       []string{path.Path()},
