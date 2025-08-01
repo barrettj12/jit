@@ -8,17 +8,12 @@ import (
 )
 
 func TestPull(t *testing.T) {
-	// Patch internal exec function
 	var expected internalExecArgs
-	realInternalExec := internalExec
-	internalExec = func(opts internalExecArgs) (string, error) {
+	patchInternalExec(t, func(opts internalExecArgs) (string, error) {
 		if !reflect.DeepEqual(opts, expected) {
 			t.Fatalf("incorrect args %#v\n", opts)
 		}
 		return "", nil
-	}
-	t.Cleanup(func() {
-		internalExec = realInternalExec
 	})
 
 	tests := []struct {
@@ -55,4 +50,12 @@ func TestPull(t *testing.T) {
 		expected = test.expected
 		_ = Pull(test.pullArgs)
 	}
+}
+
+func patchInternalExec(t *testing.T, f func(opts internalExecArgs) (string, error)) {
+	realInternalExec := internalExec
+	internalExec = f
+	t.Cleanup(func() {
+		internalExec = realInternalExec
+	})
 }

@@ -64,12 +64,16 @@ type PushArgs struct {
 	Branch      types.LocalBranch // local branch to push
 	Remote      types.RemoteName  // remote to push to
 	SetUpstream bool              // should the upstream be set on a successful push
+	Delete      bool              //
 }
 
 func Push(opts PushArgs) error {
 	args := []string{"push"}
 	if opts.SetUpstream {
 		args = append(args, "-u")
+	}
+	if opts.Delete {
+		args = append(args, "-d")
 	}
 	if opts.Remote != "" {
 		args = append(args, string(opts.Remote))
