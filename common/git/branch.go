@@ -31,8 +31,8 @@ func CreateBranch(name, base types.LocalBranch) error {
 // A return value of "" means no upstream is set.
 func PushTarget(branch types.LocalBranch) (types.RemoteBranch, error) {
 	out, err := internalExec(internalExecArgs{
-		args: []string{"rev-parse", "--abbrev-ref",
-			fmt.Sprintf("%s@{push}", branch)},
+		// alternative:  git for-each-ref --format='%(push:short)' refs/heads/<branch>
+		args: []string{"rev-parse", "--abbrev-ref", fmt.Sprintf("%s@{push}", branch)},
 	})
 	if err == nil {
 		return types.ParseRemoteBranch(strings.TrimSpace(out)), nil

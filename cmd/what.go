@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/barrettj12/jit/common/git"
+	"github.com/barrettj12/jit/common/types"
 	"github.com/spf13/cobra"
 	"os"
 
@@ -21,20 +23,22 @@ func What(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	remote, remoteBranch, err := common.PushLoc(localBranch)
+	remoteBranch, err := git.PushTarget(types.LocalBranch(localBranch))
 	if err != nil {
-		fmt.Printf("ERROR: %v\n", err)
+		fmt.Printf("WARNING: couldn't get remote: %v\n", err)
 		// Just default to the local branch name
 		defaultRemote, _ := common.DefaultRemote()
-		remote = string(defaultRemote)
-		remoteBranch = localBranch
-		fmt.Printf("assuming remote branch is %s:%s\n\n", remote, remoteBranch)
+		remoteBranch = types.RemoteBranch{
+			Remote: defaultRemote,
+			Branch: localBranch,
+		}
+		fmt.Printf("assuming remote branch is %q\n\n", remoteBranch)
 	}
 
 	res := common.Exec(common.ExecArgs{
 		Cmd: "gh",
 		Args: []string{
-			"pr", "view", fmt.Sprintf("%s:%s", remote, remoteBranch),
+			"pr", "view", fmt.Sprintf("%s:%s", remoteBranch.Remote, remoteBranch.Branch),
 			"--json", "title,state,headRefName,baseRefName,url", "-t", `
 {{.title}}
 {{.state}}: {{.headRefName}} -> {{.baseRefName}}

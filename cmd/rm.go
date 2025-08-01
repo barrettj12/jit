@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/barrettj12/jit/common/env"
+	"github.com/barrettj12/jit/common/git"
 	"github.com/barrettj12/jit/common/path"
+	"github.com/barrettj12/jit/common/types"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
@@ -27,6 +29,7 @@ func Remove(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// TODO: work out which branch is tracking (could be different name)
 	split := strings.SplitN(branch, ":", 2)
 	if len(split) >= 2 {
 		branch = split[1]
@@ -45,19 +48,22 @@ func Remove(cmd *cobra.Command, args []string) error {
 	// TODO: need to be able to handle branches with "/" in the name
 	//   $ jit rm imerge/3.3
 	//   Delete remote tracking branch barrettj12/imerge? [y/n]
-	remote, remoteBranch, err := common.PushLoc(branch)
-	switch err {
-	case common.ErrUpstreamNotFound:
+	localBranch := types.LocalBranch(branch)
+	remoteBranch, err := git.PushTarget(localBranch)
+	if remoteBranch == types.NoRemote {
 		// no-op
 		fmt.Printf("no remote tracking branch found for branch %q\n", branch)
 
+	}
+	switch err {
 	case nil:
-		ok, err := confirm(fmt.Sprintf("Delete remote tracking branch %s/%s", remote, remoteBranch))
+		ok, err := confirm(fmt.Sprintf("Delete remote tracking branch %q", remoteBranch))
 		if err != nil {
 			return err
 		}
 		if ok {
-			err = common.Git("push", "-d", remote, remoteBranch)
+			// TODO: replace with git.Push
+			err = common.Git("push", "-d", string(remoteBranch.Remote), remoteBranch.Branch)
 			if err != nil {
 				return err
 			}
